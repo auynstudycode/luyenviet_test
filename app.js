@@ -1337,3 +1337,425 @@ function escapeHTML(str=''){
   return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 }
 function toggleLearningItem(el){ el.classList.toggle('expanded'); }
+
+// ============================================================
+// PATCH 2026-05-D — Bugfix UI language, 300 drill, compact expandable learning cards, clean library modal
+// ============================================================
+state.uiLang = state.uiLang || 'vi';
+state.drill = state.drill || null;
+
+const UI_TEXT = {
+  vi: {
+    navHome:'Trang chủ', navPractice:'Luyện viết', navVocab:'Từ vựng', navGrammar:'Ngữ pháp',
+    badge:'日本語練習', heroTitle:'Luyện viết tiếng Nhật<br><span class="gradient-text">thông minh & hiệu quả</span>',
+    heroSub:'Chọn cấp độ JLPT, chọn dạng luyện tập, xem gợi ý từ vựng/ngữ pháp và nhận feedback sau khi viết.',
+    cta:'Bắt đầu luyện tập →', statLevel:'cấp độ', statTopic:'chủ đề/cấp', statAI:'feedback',
+    stepLevel:'Chọn cấp độ', stepLevelDesc:'Mỗi cấp có chủ đề, từ vựng và ngữ pháp phù hợp',
+    stepMode:'Chọn hình thức luyện tập', stepModeDesc:'Ba chế độ rõ ràng cho từng mục tiêu luyện viết',
+    modeTopic:'Viết theo chủ đề', modeTopicDesc:'Chọn 1 trong 100 chủ đề/cấp, xem từ vựng và ngữ pháp rồi viết theo đề.', modeTopicTag:'Học theo lộ trình',
+    modeFree:'Luyện viết tự do', modeFreeDesc:'Nhập chủ đề bạn muốn luyện. Hệ thống tạo 3 đề tiếng Nhật kèm gợi ý.', modeFreeTag:'Viết theo ý bạn',
+    modeDrill:'Luyện viết 2 chiều', modeDrillDesc:'300 câu/cấp, dịch Việt↔Nhật từ dễ đến khó và có chấm điểm.', modeDrillTag:'Luyện phản xạ',
+    topicTitle:'Chọn chủ đề', topicDesc:'100 chủ đề/cấp, có thanh cuộn để chọn nhanh', topicSearch:'Tìm chủ đề: 家族, 仕事, AI...',
+    freeTitle:'Nhập chủ đề muốn viết', freeDesc:'Chọn tag hoặc nhập chủ đề riêng. Đề bài sẽ hiển thị bằng tiếng Nhật, bên dưới có bản dịch tiếng Việt.', freePlaceholder:'Ví dụ: Kỳ nghỉ hè, Sở thích, Thức ăn yêu thích...', suggest:'Tạo đề bài ✨', freeTags:'20 tag gợi ý:',
+    currentTopic:'Chủ đề đang luyện', vocab:'Từ vựng', grammar:'Ngữ pháp', changeTopic:'← Đổi chủ đề', submit:'Nộp bài & nhận feedback ↗', clear:'Xóa', chars:'ký tự',
+    libraryVocab:'Từ vựng theo cấp độ', libraryGrammar:'Ngữ pháp theo cấp độ', libraryDesc:'Chọn cấp độ, chọn chủ đề rồi bấm vào từng mục để xem giải thích chi tiết.',
+    searchLibrary:'Tìm chủ đề, từ vựng, ngữ pháp...', sortDefault:'Sắp xếp mặc định', sortAZ:'A → Z', sortZA:'Z → A',
+    drillTitle:'300 câu luyện dịch', drillDesc:'Tự động trộn chủ đề trong cấp độ đã chọn. Câu sau sẽ khó dần.', check:'Kiểm tra ↗', previous:'← Câu trước', skip:'Bỏ qua', next:'Câu tiếp theo →', backMode:'⬅ Đổi chế độ'
+  },
+  en: {
+    navHome:'Home', navPractice:'Writing', navVocab:'Vocabulary', navGrammar:'Grammar',
+    badge:'Japanese practice', heroTitle:'Japanese writing practice<br><span class="gradient-text">smart & effective</span>',
+    heroSub:'Choose a JLPT level, pick a practice mode, review vocabulary/grammar hints, then get feedback after writing.',
+    cta:'Start practice →', statLevel:'levels', statTopic:'topics/level', statAI:'feedback',
+    stepLevel:'Choose level', stepLevelDesc:'Each level has matching topics, vocabulary and grammar',
+    stepMode:'Choose practice mode', stepModeDesc:'Three clear modes for different writing goals',
+    modeTopic:'Topic writing', modeTopicDesc:'Pick 1 of 100 topics per level, review hints, then write from a prompt.', modeTopicTag:'Structured path',
+    modeFree:'Free writing', modeFreeDesc:'Enter any topic. The app creates 3 Japanese prompts with suggestions.', modeFreeTag:'Your own topic',
+    modeDrill:'Two-way writing', modeDrillDesc:'300 sentences per level. Translate Vietnamese↔Japanese from easy to hard, with scoring.', modeDrillTag:'Fast drills',
+    topicTitle:'Choose a topic', topicDesc:'100 topics per level with an internal scroll area', topicSearch:'Search topics: 家族, 仕事, AI...',
+    freeTitle:'Enter a writing topic', freeDesc:'Pick a tag or type your own topic. Prompts appear in Japanese with a gray Vietnamese translation below.', freePlaceholder:'Example: Summer vacation, Hobbies, Favorite food...', suggest:'Create prompts ✨', freeTags:'20 suggested tags:',
+    currentTopic:'Current topic', vocab:'Vocabulary', grammar:'Grammar', changeTopic:'← Change topic', submit:'Submit & get feedback ↗', clear:'Clear', chars:'characters',
+    libraryVocab:'Vocabulary by level', libraryGrammar:'Grammar by level', libraryDesc:'Choose a level and topic, then tap an item to view details.',
+    searchLibrary:'Search topics, vocabulary, grammar...', sortDefault:'Default order', sortAZ:'A → Z', sortZA:'Z → A',
+    drillTitle:'300 translation drills', drillDesc:'Topics are mixed automatically within the selected level. Later sentences get harder.', check:'Check ↗', previous:'← Previous', skip:'Skip', next:'Next sentence →', backMode:'⬅ Change mode'
+  },
+  ja: {
+    navHome:'ホーム', navPractice:'作文練習', navVocab:'語彙', navGrammar:'文法',
+    badge:'日本語練習', heroTitle:'日本語作文を<br><span class="gradient-text">効率よく練習</span>',
+    heroSub:'JLPTレベルを選び、練習形式を選択し、語彙・文法を確認してから作文できます。',
+    cta:'練習を始める →', statLevel:'レベル', statTopic:'テーマ/レベル', statAI:'添削',
+    stepLevel:'レベルを選ぶ', stepLevelDesc:'各レベルに合ったテーマ・語彙・文法を用意しています',
+    stepMode:'練習形式を選ぶ', stepModeDesc:'目的に合わせて三つのモードから選べます',
+    modeTopic:'テーマ別作文', modeTopicDesc:'各レベル100テーマから選び、語彙と文法を確認して作文します。', modeTopicTag:'体系的に学ぶ',
+    modeFree:'自由作文', modeFreeDesc:'好きなテーマを入力すると、日本語の課題とヒントを作成します。', modeFreeTag:'自由に書く',
+    modeDrill:'双方向作文', modeDrillDesc:'各レベル300文。ベトナム語↔日本語を易しい順に翻訳し、採点します。', modeDrillTag:'反射練習',
+    topicTitle:'テーマを選ぶ', topicDesc:'各レベル100テーマ。内部スクロールで素早く選択できます', topicSearch:'テーマ検索：家族、仕事、AI...',
+    freeTitle:'作文テーマを入力', freeDesc:'タグを選ぶか自由に入力してください。課題は日本語、下にベトナム語訳を表示します。', freePlaceholder:'例：夏休み、趣味、好きな食べ物...', suggest:'課題を作成 ✨', freeTags:'おすすめタグ20個:',
+    currentTopic:'練習中のテーマ', vocab:'語彙', grammar:'文法', changeTopic:'← テーマ変更', submit:'提出してフィードバック ↗', clear:'消す', chars:'文字',
+    libraryVocab:'レベル別語彙', libraryGrammar:'レベル別文法', libraryDesc:'レベルとテーマを選び、項目をタップして詳しい説明を確認します。',
+    searchLibrary:'テーマ・語彙・文法を検索...', sortDefault:'標準順', sortAZ:'A → Z', sortZA:'Z → A',
+    drillTitle:'300文翻訳練習', drillDesc:'選択したレベル内でテーマを自動的に混ぜます。後半ほど難しくなります。', check:'確認 ↗', previous:'← 前の文', skip:'スキップ', next:'次の文 →', backMode:'⬅ モード変更'
+  },
+  zh: {
+    navHome:'首页', navPractice:'写作练习', navVocab:'词汇', navGrammar:'语法',
+    badge:'日语练习', heroTitle:'日语写作练习<br><span class="gradient-text">智能又高效</span>',
+    heroSub:'选择 JLPT 等级和练习模式，查看词汇/语法提示，写完后获得反馈。',
+    cta:'开始练习 →', statLevel:'等级', statTopic:'主题/等级', statAI:'反馈',
+    stepLevel:'选择等级', stepLevelDesc:'每个等级都有对应的主题、词汇和语法',
+    stepMode:'选择练习方式', stepModeDesc:'三种模式对应不同写作目标',
+    modeTopic:'按主题写作', modeTopicDesc:'每级100个主题，先看词汇语法，再按题目写作。', modeTopicTag:'系统学习',
+    modeFree:'自由写作', modeFreeDesc:'输入任意主题，系统生成3个日语题目和提示。', modeFreeTag:'自由主题',
+    modeDrill:'双向写作', modeDrillDesc:'每级300句，越南语↔日语由易到难翻译，并显示评分。', modeDrillTag:'反应训练',
+    topicTitle:'选择主题', topicDesc:'每级100个主题，内部滚动更容易选择', topicSearch:'搜索主题：家族、仕事、AI...',
+    freeTitle:'输入写作主题', freeDesc:'选择标签或输入自定义主题。题目为日语，下方显示灰色越南语翻译。', freePlaceholder:'例如：暑假、兴趣、喜欢的食物...', suggest:'生成题目 ✨', freeTags:'20个推荐标签:',
+    currentTopic:'当前主题', vocab:'词汇', grammar:'语法', changeTopic:'← 更换主题', submit:'提交并获得反馈 ↗', clear:'清除', chars:'字符',
+    libraryVocab:'按等级查看词汇', libraryGrammar:'按等级查看语法', libraryDesc:'选择等级和主题，然后点击项目查看详细说明。',
+    searchLibrary:'搜索主题、词汇、语法...', sortDefault:'默认排序', sortAZ:'A → Z', sortZA:'Z → A',
+    drillTitle:'300句翻译练习', drillDesc:'自动混合所选等级的主题，句子会逐渐变难。', check:'检查 ↗', previous:'← 上一句', skip:'跳过', next:'下一句 →', backMode:'⬅ 更换模式'
+  }
+};
+const TOPIC_EN = {'家族':'Family','仕事':'Work','健康':'Health','環境':'Environment','教育':'Education','日本文化':'Japanese culture','社会経済':'Society & economy','科学と未来':'Science & future','人間関係':'Relationships','哲学と思考':'Philosophy & thinking','政治と社会':'Politics & society','文学と芸術':'Literature & art'};
+const TOPIC_ZH = {'家族':'家庭','仕事':'工作','健康':'健康','環境':'环境','教育':'教育','日本文化':'日本文化','社会経済':'社会经济','科学と未来':'科学与未来','人間関係':'人际关系','哲学と思考':'哲学与思考','政治と社会':'政治与社会','文学と芸術':'文学与艺术'};
+function ui(){ return UI_TEXT[state.uiLang || 'vi'] || UI_TEXT.vi; }
+function localTopicName(t){
+  const lang=state.uiLang||'vi';
+  if(lang==='ja') return t.jpName || lvJPTopic(t.name);
+  if(lang==='en') return TOPIC_EN[t.jpName] || TOPIC_EN[t.name] || t.name;
+  if(lang==='zh') return TOPIC_ZH[t.jpName] || TOPIC_ZH[t.name] || t.name;
+  return t.name;
+}
+function setText(sel, text){ const el=document.querySelector(sel); if(el) el.textContent=text; }
+function setHTML(sel, html){ const el=document.querySelector(sel); if(el) el.innerHTML=html; }
+function setPH(sel, text){ const el=document.querySelector(sel); if(el) el.placeholder=text; }
+function applyUITranslations(){
+  const T=ui();
+  const nav=document.querySelectorAll('.nav-link');
+  if(nav[0]) nav[0].textContent=T.navHome; if(nav[1]) nav[1].textContent=T.navPractice; if(nav[2]) nav[2].textContent=T.navVocab; if(nav[3]) nav[3].textContent=T.navGrammar;
+  setText('.hero-badge', T.badge); setHTML('.hero-title', T.heroTitle); setText('.hero-sub', T.heroSub); setText('.hero-cta .btn-primary', T.cta);
+  const stats=document.querySelectorAll('.hero-stats span:not(.dot-sep)');
+  if(stats[0]) stats[0].innerHTML=`<strong>5</strong> ${T.statLevel}`; if(stats[1]) stats[1].innerHTML=`<strong>100</strong> ${T.statTopic}`; if(stats[2]) stats[2].innerHTML=`<strong>AI</strong> ${T.statAI}`;
+  const stepHeaders=document.querySelectorAll('#step-level .step-title, #step-mode .step-title, #step-topics .step-title, #step-free-input .step-title');
+  if(stepHeaders[0]) stepHeaders[0].textContent=T.stepLevel; if(stepHeaders[1]) stepHeaders[1].textContent=T.stepMode; if(stepHeaders[2]) stepHeaders[2].innerHTML=`${T.topicTitle} <span class="level-badge" id="topic-level-badge">${state.level||''}</span>`; if(stepHeaders[3]) stepHeaders[3].textContent=T.freeTitle;
+  setText('#step-level .step-desc', T.stepLevelDesc); setText('#step-mode .step-desc', T.stepModeDesc); setText('#step-topics .step-desc', T.topicDesc); setText('#step-free-input .step-desc', T.freeDesc);
+  const modeTitles=document.querySelectorAll('.mode-title'), modeDescs=document.querySelectorAll('.mode-desc'), modeTags=document.querySelectorAll('.mode-tag');
+  if(modeTitles[0]) modeTitles[0].textContent=T.modeTopic; if(modeTitles[1]) modeTitles[1].textContent=T.modeFree; if(modeTitles[2]) modeTitles[2].textContent=T.modeDrill;
+  if(modeDescs[0]) modeDescs[0].textContent=T.modeTopicDesc; if(modeDescs[1]) modeDescs[1].textContent=T.modeFreeDesc; if(modeDescs[2]) modeDescs[2].textContent=T.modeDrillDesc;
+  if(modeTags[0]) modeTags[0].textContent=T.modeTopicTag; if(modeTags[1]) modeTags[1].textContent=T.modeFreeTag; if(modeTags[2]) modeTags[2].textContent=T.modeDrillTag;
+  setPH('#topic-search', T.topicSearch); setPH('#free-topic-input', T.freePlaceholder); setText('.btn-suggest', T.suggest);
+  setText('.sidebar-topic-label', T.currentTopic); const sh=document.querySelectorAll('.sidebar-block-header h4'); if(sh[0]) sh[0].textContent=`📖 ${T.vocab}`; if(sh[1]) sh[1].textContent=`🔧 ${T.grammar}`;
+  setText('.btn-change-topic', T.changeTopic); const submit=document.querySelector('#step-writing .btn-submit'); if(submit) submit.textContent=T.submit; const clear=document.querySelector('#step-writing .btn-clear'); if(clear) clear.textContent=T.clear;
+  setPH('#library-search', T.searchLibrary); const opts=document.querySelectorAll('#library-sort option'); if(opts[0]) opts[0].textContent=T.sortDefault; if(opts[1]) opts[1].textContent=T.sortAZ; if(opts[2]) opts[2].textContent=T.sortZA;
+  setText('#library-title', libraryState?.type==='grammar'?T.libraryGrammar:T.libraryVocab); setText('#library-desc', T.libraryDesc);
+  setPH('#drill-topic-search', T.topicSearch); setText('.drill-topic-panel h3', T.drillTitle); setText('.drill-topic-panel p', T.drillDesc); setText('#drill-check-btn', T.check);
+  const drillBtns=document.querySelectorAll('.drill-nav button'); if(drillBtns[0]) drillBtns[0].textContent=T.previous; if(drillBtns[1]) drillBtns[1].textContent=T.skip; if(drillBtns[2]) drillBtns[2].textContent=T.next; if(drillBtns[3]) drillBtns[3].textContent=T.backMode;
+  const footer=document.querySelector('.footer-copy'); if(footer) footer.textContent = state.uiLang==='ja'?'毎日、日本語作文を練習しましょう 🌸': state.uiLang==='en'?'Practice Japanese writing every day 🌸': state.uiLang==='zh'?'每天练习日语写作 🌸':'Luyện viết tiếng Nhật mỗi ngày 🌸';
+  renderFreeTags();
+  if(!document.getElementById('step-topics')?.classList.contains('step-hidden')) renderTopics();
+  if(!document.getElementById('library-section')?.classList.contains('step-hidden')) { renderLibraryLevels(); renderLibraryTopics(); }
+  if(state.topic && !document.getElementById('step-writing')?.classList.contains('step-hidden')) { renderSidebar(); renderPrompt(); }
+  if(state.drill && !document.getElementById('step-drill')?.classList.contains('step-hidden')) renderDrill();
+}
+function setUILanguage(lang,btn){
+  state.uiLang=lang;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b===btn || b.textContent.trim().toLowerCase().includes(lang)));
+  applyUITranslations();
+}
+
+function vnPosFor(i){ return ['Danh từ / dùng trung tính trong văn viết','Động từ hoặc cụm biểu hiện / dùng trong câu giải thích hành động','Tính từ hoặc biểu hiện mô tả / dùng để bổ sung sắc thái'][i%3]; }
+function vnCollocations(jp, vn){
+  return [
+    {jp:`${jp}について書く`, vi:`viết về ${vn}`},
+    {jp:`${jp}を大切にする`, vi:`coi trọng ${vn}`},
+    {jp:`${jp}に関係がある`, vi:`có liên quan đến ${vn}`}
+  ];
+}
+function accurateVocabExamples(level,jp,vn,topic){
+  const topicJP=lvJPTopic(topic), topicVN=topic;
+  if(level==='N5') return [{jp:`私は${jp}について書きます。`, vi:`Tôi viết về ${vn}.`},{jp:`${jp}は大切です。`, vi:`${vn} rất quan trọng.`}];
+  if(level==='N4') return [{jp:`${topicJP}について書くとき、${jp}という言葉を使います。`, vi:`Khi viết về ${topicVN}, tôi dùng từ “${vn}”.`},{jp:`私は${jp}に興味があります。`, vi:`Tôi quan tâm đến ${vn}.`}];
+  if(level==='N3') return [{jp:`${topicJP}を考えるうえで、${jp}は重要なキーワードです。`, vi:`Khi suy nghĩ về ${topicVN}, “${vn}” là một từ khóa quan trọng.`},{jp:`${jp}を理解すると、自分の意見を具体的に書けます。`, vi:`Khi hiểu ${vn}, bạn có thể viết ý kiến của mình cụ thể hơn.`}];
+  if(level==='N2') return [{jp:`${topicJP}を論じる際、${jp}という観点は欠かせません。`, vi:`Khi bàn luận về ${topicVN}, góc nhìn “${vn}” là không thể thiếu.`},{jp:`${jp}を用いることで、文章の説得力が高まります。`, vi:`Bằng cách sử dụng ${vn}, sức thuyết phục của bài viết sẽ tăng lên.`}];
+  return [{jp:`${topicJP}の本質を問うなら、${jp}という概念を避けて通れません。`, vi:`Nếu bàn về bản chất của ${topicVN}, khó có thể tránh khái niệm “${vn}”.`},{jp:`${jp}は抽象的な議論を支える重要な語彙です。`, vi:`${vn} là từ vựng quan trọng nâng đỡ những lập luận mang tính trừu tượng.`}];
+}
+function lvBuildVocab(level,name,idx){
+  const pool=LV_EXTRA_VOCAB[level] || LV_EXTRA_VOCAB.N3;
+  const topicJP=lvJPTopic(name);
+  const first=[topicJP, topicJP, `chủ đề “${name}”`];
+  const chosen=[first,...pool.slice(idx%pool.length),...pool.slice(0,idx%pool.length)].slice(0,20);
+  return chosen.map((x,i)=>{
+    const jp=x[0], r=x[1], vn=x[2];
+    return {jp,r,vn,_level:level,posVN:vnPosFor(i),
+      nuanceVN:`Nên học theo cụm thay vì học riêng lẻ. Khi viết, hãy đặt “${jp}” vào phần chủ đề, lý do hoặc ví dụ để câu tự nhiên hơn.`,
+      collocations:vnCollocations(jp,vn),
+      collocation:vnCollocations(jp,vn).map(c=>`${c.jp} (${c.vi})`).join('・'),
+      contextVN:`Dùng khi viết về “${name}” ở cấp ${level}. Từ này phù hợp để nêu chủ đề, bổ sung lý do hoặc làm ví dụ cụ thể trong bài viết.`,
+      context:`Dùng khi viết về “${name}” ở cấp ${level}. Từ này phù hợp để nêu chủ đề, bổ sung lý do hoặc làm ví dụ cụ thể trong bài viết.`,
+      examples:accurateVocabExamples(level,jp,vn,name),
+      nuance:`Nên học theo cụm thay vì học riêng lẻ. Khi viết, hãy đặt “${jp}” vào phần chủ đề, lý do hoặc ví dụ để câu tự nhiên hơn.`};
+  });
+}
+function grammarExamples(pattern,name){
+  const jt=lvJPTopic(name), vn=name;
+  const map={
+    '〜は〜です':[{jp:`${jt}は大切なテーマです。`,vi:`${vn} là một chủ đề quan trọng.`},{jp:`私の趣味は読書です。`,vi:`Sở thích của tôi là đọc sách.`}],
+    '〜が好きです':[{jp:`私は${jt}が好きです。`,vi:`Tôi thích ${vn}.`},{jp:`弟はサッカーが好きです。`,vi:`Em trai tôi thích bóng đá.`}],
+    '〜に行きます':[{jp:`週末、公園に行きます。`,vi:`Cuối tuần tôi đi công viên.`},{jp:`友達と学校へ行きます。`,vi:`Tôi đi đến trường cùng bạn.`}],
+    '〜を〜ます':[{jp:`毎日、日本語を勉強します。`,vi:`Mỗi ngày tôi học tiếng Nhật.`},{jp:`朝ごはんを食べます。`,vi:`Tôi ăn sáng.`}],
+    '〜と〜':[{jp:`父と母は優しいです。`,vi:`Bố và mẹ tôi hiền.`},{jp:`パンとコーヒーを買いました。`,vi:`Tôi đã mua bánh mì và cà phê.`}],
+    '〜があります':[{jp:`私の部屋には机があります。`,vi:`Trong phòng tôi có bàn học.`},{jp:`公園に大きな木があります。`,vi:`Ở công viên có một cái cây lớn.`}],
+    '〜がいます':[{jp:`家に猫がいます。`,vi:`Ở nhà có một con mèo.`},{jp:`教室に先生がいます。`,vi:`Trong lớp có giáo viên.`}],
+    '〜たことがあります':[{jp:`私は日本料理を食べたことがあります。`,vi:`Tôi đã từng ăn món Nhật.`},{jp:`京都へ行ったことがあります。`,vi:`Tôi đã từng đi Kyoto.`}],
+    '〜ために':[{jp:`合格するために、毎日勉強しています。`,vi:`Để thi đỗ, tôi học mỗi ngày.`},{jp:`健康のために、早く寝ます。`,vi:`Vì sức khỏe, tôi đi ngủ sớm.`}],
+    '〜ようになる':[{jp:`毎日練習して、日本語で日記が書けるようになりました。`,vi:`Nhờ luyện tập mỗi ngày, tôi đã có thể viết nhật ký bằng tiếng Nhật.`},{jp:`最近、早く起きるようになりました。`,vi:`Gần đây tôi bắt đầu dậy sớm hơn.`}],
+    '〜と思います':[{jp:`${jt}は大切だと思います。`,vi:`Tôi nghĩ ${vn} là quan trọng.`},{jp:`この方法は便利だと思います。`,vi:`Tôi nghĩ phương pháp này tiện lợi.`}],
+    '〜てみる':[{jp:`新しい勉強法を試してみます。`,vi:`Tôi sẽ thử phương pháp học mới.`},{jp:`日本料理を作ってみたいです。`,vi:`Tôi muốn thử nấu món Nhật.`}],
+    '〜ほうがいい':[{jp:`毎日少しずつ練習したほうがいいです。`,vi:`Nên luyện tập từng chút mỗi ngày.`},{jp:`夜遅くまでスマホを見ないほうがいいです。`,vi:`Không nên xem điện thoại đến khuya.`}],
+    '〜ながら':[{jp:`音楽を聞きながら、宿題をします。`,vi:`Tôi vừa nghe nhạc vừa làm bài tập.`},{jp:`景色を見ながら、散歩しました。`,vi:`Tôi vừa ngắm cảnh vừa đi dạo.`}],
+    '〜によって':[{jp:`考え方は人によって違います。`,vi:`Cách suy nghĩ khác nhau tùy người.`},{jp:`技術の発展によって、生活は便利になりました。`,vi:`Nhờ sự phát triển công nghệ, cuộc sống đã trở nên tiện lợi.`}],
+    '〜だけでなく〜も':[{jp:`SNSは便利なだけでなく、危険もあります。`,vi:`Mạng xã hội không chỉ tiện lợi mà còn có nguy cơ.`},{jp:`環境問題は国だけでなく、個人にも関係があります。`,vi:`Vấn đề môi trường không chỉ liên quan đến quốc gia mà còn liên quan đến từng cá nhân.`}],
+    '〜べきだ':[{jp:`私たちは環境を守るべきです。`,vi:`Chúng ta nên bảo vệ môi trường.`},{jp:`若者は自分の意見を持つべきです。`,vi:`Người trẻ nên có chính kiến của mình.`}],
+    '〜一方で':[{jp:`都会は便利な一方で、生活費が高いです。`,vi:`Thành phố tiện lợi, nhưng mặt khác chi phí sinh hoạt cao.`},{jp:`SNSは情報を得やすい一方で、時間を使いすぎることもあります。`,vi:`Mạng xã hội giúp dễ lấy thông tin, nhưng mặt khác cũng có thể khiến ta dùng quá nhiều thời gian.`}],
+    '〜に対して':[{jp:`この問題に対して、政府は対策を取るべきです。`,vi:`Đối với vấn đề này, chính phủ nên đưa ra biện pháp.`},{jp:`日本文化に対して、強い興味があります。`,vi:`Tôi có sự quan tâm mạnh mẽ đối với văn hóa Nhật.`}],
+    '〜ことによって':[{jp:`毎日書くことによって、表現力が上がります。`,vi:`Bằng việc viết mỗi ngày, khả năng diễn đạt sẽ tăng lên.`},{jp:`相手の話を聞くことによって、理解が深まります。`,vi:`Bằng việc lắng nghe đối phương, sự thấu hiểu sẽ sâu sắc hơn.`}],
+    '〜わけではない':[{jp:`便利だからといって、問題がないわけではありません。`,vi:`Không phải cứ tiện lợi là không có vấn đề.`},{jp:`日本語が難しいわけではなく、練習が必要なのです。`,vi:`Không hẳn tiếng Nhật khó, mà là cần luyện tập.`}],
+    '〜にもかかわらず':[{jp:`努力したにもかかわらず、結果は十分ではありませんでした。`,vi:`Mặc dù đã nỗ lực, kết quả vẫn chưa đủ tốt.`},{jp:`便利であるにもかかわらず、多くの課題が残っています。`,vi:`Mặc dù tiện lợi, vẫn còn nhiều vấn đề.`}],
+    '〜を踏まえて':[{jp:`現状を踏まえて、解決策を考える必要があります。`,vi:`Cần suy nghĩ giải pháp dựa trên hiện trạng.`},{jp:`調査結果を踏まえて、意見を述べます。`,vi:`Tôi sẽ trình bày ý kiến dựa trên kết quả khảo sát.`}],
+    '〜に伴って':[{jp:`高齢化に伴って、介護の需要が増えています。`,vi:`Cùng với già hóa dân số, nhu cầu chăm sóc người cao tuổi đang tăng.`},{jp:`技術の進歩に伴って、働き方も変化しています。`,vi:`Cùng với tiến bộ công nghệ, cách làm việc cũng đang thay đổi.`}],
+    '〜ざるを得ない':[{jp:`人手が足りないため、外国人労働者に頼らざるを得ません。`,vi:`Vì thiếu nhân lực, không thể không dựa vào lao động nước ngoài.`},{jp:`状況が悪化すれば、計画を変更せざるを得ません。`,vi:`Nếu tình hình xấu đi, buộc phải thay đổi kế hoạch.`}],
+    '〜をめぐって':[{jp:`教育改革をめぐって、さまざまな意見があります。`,vi:`Xung quanh cải cách giáo dục có nhiều ý kiến khác nhau.`},{jp:`環境政策をめぐって、議論が続いています。`,vi:`Các cuộc tranh luận vẫn tiếp diễn xoay quanh chính sách môi trường.`}],
+    '〜に基づいて':[{jp:`データに基づいて、判断するべきです。`,vi:`Nên phán đoán dựa trên dữ liệu.`},{jp:`経験に基づいて、助言しました。`,vi:`Tôi đã đưa ra lời khuyên dựa trên kinh nghiệm.`}],
+    '〜にすぎない':[{jp:`これは一つの例にすぎません。`,vi:`Đây chỉ là một ví dụ mà thôi.`},{jp:`技術は道具にすぎず、使い方が重要です。`,vi:`Công nghệ chỉ là công cụ, cách sử dụng mới quan trọng.`}],
+    '〜がゆえに':[{jp:`自由であるがゆえに、責任も伴います。`,vi:`Chính vì có tự do nên cũng đi kèm trách nhiệm.`},{jp:`言葉は曖昧であるがゆえに、解釈の余地があります。`,vi:`Chính vì ngôn từ mơ hồ nên có chỗ cho việc diễn giải.`}],
+    '〜にほかならない':[{jp:`教育は未来への投資にほかなりません。`,vi:`Giáo dục chính là sự đầu tư cho tương lai.`},{jp:`表現の自由は民主主義の基盤にほかなりません。`,vi:`Tự do biểu đạt chính là nền tảng của dân chủ.`}],
+    '〜ならではの':[{jp:`日本ならではの美意識があります。`,vi:`Có một mỹ cảm đặc trưng chỉ Nhật Bản mới có.`},{jp:`文学ならではの力は、社会を映し出すことです。`,vi:`Sức mạnh riêng của văn học là phản ánh xã hội.`}],
+    '〜とも〜とも言えない':[{jp:`この変化は良いとも悪いとも言えません。`,vi:`Không thể nói sự thay đổi này là tốt hay xấu.`},{jp:`AIは敵とも味方とも言えません。`,vi:`Không thể nói AI là kẻ thù hay đồng minh.`}],
+    '〜に至っては':[{jp:`都市部に至っては、住宅費がさらに深刻です。`,vi:`Đến mức ở khu vực đô thị, chi phí nhà ở còn nghiêm trọng hơn.`},{jp:`若者に至っては、新聞をほとんど読まなくなりました。`,vi:`Đến cả giới trẻ cũng gần như không còn đọc báo giấy.`}],
+    '〜ずにはおかない':[{jp:`この作品は読者に深い印象を与えずにはおきません。`,vi:`Tác phẩm này chắc chắn sẽ để lại ấn tượng sâu sắc cho độc giả.`},{jp:`技術革新は社会を変えずにはおきません。`,vi:`Đổi mới công nghệ nhất định sẽ làm thay đổi xã hội.`}],
+    '〜いかんによらず':[{jp:`理由のいかんによらず、差別は許されません。`,vi:`Bất kể lý do là gì, phân biệt đối xử không được chấp nhận.`},{jp:`結果のいかんによらず、過程を評価するべきです。`,vi:`Bất kể kết quả thế nào, nên đánh giá cả quá trình.`}]
+  };
+  return map[pattern] || [{jp:`${jt}について考えることは大切です。`, vi:`Suy nghĩ về ${vn} là điều quan trọng.`},{jp:`この表現を使うと、文章が自然になります。`, vi:`Dùng cách diễn đạt này sẽ làm bài viết tự nhiên hơn.`}];
+}
+function lvBuildGrammar(level,name,idx){
+  const pool=LV_GRAMMAR_POOL[level] || LV_GRAMMAR_POOL.N3;
+  return pool.slice(0,7).map((g,i)=>({
+    pattern:g[0], structure:g[1], meaning:g[2], meaningVN:g[2], context:g[3], _level:level,
+    contextBullets:[`Dùng trong bài viết cấp ${level} khi muốn làm câu có logic rõ hơn.`, g[3], `Phù hợp với chủ đề “${name}” khi cần nêu lý do, ví dụ, mặt đối lập hoặc kết luận.`],
+    examples:grammarExamples(g[0],name),
+    note:`Mẫu này nên đặt ở câu giải thích hoặc câu kết nối ý. Tránh dùng quá nhiều lần trong cùng một đoạn; chỉ dùng khi quan hệ ý nghĩa thật sự phù hợp.`
+  }));
+}
+function lvMakeTopic(level,name,idx){
+  return {name, jpName:lvJPTopic(name), emoji:(typeof PATCH_EMOJIS !== 'undefined' ? PATCH_EMOJIS[idx%PATCH_EMOJIS.length] : ['🌸','📚','✏️','🎧','🎬','🍱','🏫','💼','🌍','🧠','📱','🚆','🏙️','🤝','🎯','☕','🏃','🛍️','🗾','✨'][idx%20]), category:lvCategoryForTopic(name), prompts:lvPromptSet(level,name), vocab:lvBuildVocab(level,name,idx), grammar:lvBuildGrammar(level,name,idx)};
+}
+lvEnsure100Topics();
+
+function renderLevels(){
+  const grid=document.getElementById('level-grid'); if(!grid) return;
+  grid.innerHTML=LEVELS.map(l=>`<div class="level-card level-card-clean" id="lv-${l.id}" onclick="selectLevel('${l.id}')"><div class="level-jp" style="color:${l.color}">${l.name}</div><div class="level-sub">${escapeHTML(l.sub)}</div><div class="level-mini">100 chủ đề · 20 từ · 7 mẫu</div></div>`).join('');
+}
+function renderTopics(){
+  const all=TOPICS[state.level]||[];
+  const q=(document.getElementById('topic-search')?.value||'').toLowerCase().trim();
+  const filter=document.getElementById('topic-filter')?.value||'all';
+  const topics=all.map((t,i)=>({...t,_idx:i})).filter(t=>{
+    const matchQ=!q || `${t.name} ${t.jpName}`.toLowerCase().includes(q);
+    const matchF=filter==='all' || t.category===filter;
+    return matchQ && matchF;
+  });
+  const badge=document.getElementById('topic-level-badge'); if(badge) badge.textContent=`${state.level} · ${topics.length}/${all.length}`;
+  const grid=document.getElementById('topic-grid'); if(!grid) return;
+  grid.innerHTML=topics.map(t=>`<div class="topic-card" onclick="selectTopic(${t._idx})"><div class="topic-emoji">${t.emoji}</div><div class="topic-name"><span class="topic-jp-name">${escapeHTML(t.jpName||'')}</span><span>${escapeHTML(localTopicName(t))}</span></div><div class="topic-count">3 đề · 20 từ · 7 mẫu</div></div>`).join('') || `<div class="empty-state">Không thấy chủ đề phù hợp. Thử từ khóa khác nhé.</div>`;
+}
+function promptVN(p){
+  const jp=p.jp||'';
+  const jt=state.topic?.jpName||'chủ đề này', vn=state.topic?.name||'chủ đề này';
+  if(p.vn) return p.vn;
+  if(jp.includes('短い文')) return `Hãy viết câu ngắn về ${vn}.`;
+  if(jp.includes('好きなこと')) return `Hãy giới thiệu một điều bạn thích về ${vn}.`;
+  if(jp.includes('いつ・どこで・だれと')) return `Hãy viết khi nào, ở đâu và với ai bạn làm điều liên quan đến ${vn}.`;
+  if(jp.includes('経験')) return `Hãy viết về ${vn}, có đưa kinh nghiệm của bản thân.`;
+  if(jp.includes('大切')) return `Hãy viết điều bạn cho là quan trọng về ${vn} và kèm lý do.`;
+  if(jp.includes('これから')) return `Hãy viết cụ thể điều bạn muốn làm từ nay liên quan đến ${vn}.`;
+  if(jp.includes('良い点')) return `Hãy viết ý kiến của bạn về điểm tốt và vấn đề của ${vn}.`;
+  if(jp.includes('具体例')) return `Hãy nêu một ví dụ cụ thể và trình bày suy nghĩ về ${vn}.`;
+  if(jp.includes('影響')) return `Hãy viết về ảnh hưởng của ${vn} đến đời sống/xã hội.`;
+  if(jp.includes('現状')) return `Hãy bàn luận về hiện trạng và thách thức xoay quanh ${vn}.`;
+  if(jp.includes('解決策')) return `Hãy nêu một vấn đề của ${vn} và đề xuất giải pháp.`;
+  return `Bản dịch: Hãy viết về ${vn}.`;
+}
+function renderPrompt(){
+  const p=state.topic.prompts[state.promptIdx%state.topic.prompts.length];
+  const title=state.topic.jpName || lvJPTopic(state.topic.name);
+  document.getElementById('writing-prompt').innerHTML=`<div class="prompt-head"><div><div class="prompt-label">テーマ：${escapeHTML(title)}</div><div class="prompt-index">課題 ${state.promptIdx+1}/${state.topic.prompts.length}</div></div><div class="prompt-switcher">${state.topic.prompts.map((_,i)=>`<button class="prompt-pill ${i===state.promptIdx?'active':''}" onclick="choosePrompt(${i})">${i+1}</button>`).join('')}</div></div><div class="prompt-text">${escapeHTML(p.jp)}</div><div class="prompt-vn-soft">${escapeHTML(promptVN(p))}</div>`;
+}
+function choosePrompt(i){ state.promptIdx=i; renderPrompt(); clearFeedback(); }
+
+function renderSidebar(){
+  const t=state.topic, T=ui();
+  document.getElementById('sidebar-topic').textContent=`${t.emoji} ${t.jpName||lvJPTopic(t.name)}`;
+  document.getElementById('sidebar-level').textContent=`${state.level} · ${localTopicName(t)}`;
+  document.getElementById('vocab-list').innerHTML=t.vocab.map((v,idx)=>`<div class="vocab-item expandable-item" onclick="toggleLearningItem(this)"><div class="learning-row"><div><div class="vocab-jp">${escapeHTML(v.jp)}</div><div class="vocab-reading">${escapeHTML(v.r)}</div></div><div class="vocab-vn">${escapeHTML(v.vn)}</div></div><div class="expand-detail"><div><b>Collocation:</b> ${(v.collocations||[]).map(c=>`${escapeHTML(c.jp)} <span>(${escapeHTML(c.vi)})</span>`).join(' · ')}</div><div><b>Bối cảnh:</b> ${escapeHTML(v.contextVN||v.context||'')}</div><div class="mini-examples"><b>Ví dụ:</b><br>${(v.examples||[]).map((e,i)=>`${i+1}. ${escapeHTML(e.jp||e)} <span>(${escapeHTML(e.vi||'')})</span>`).join('<br>')}</div><button class="detail-button" onclick="event.stopPropagation(); lvOpenDetail('vocab', state.topic.vocab[${idx}])">Mở chi tiết</button></div></div>`).join('');
+  document.getElementById('vocab-count').textContent=t.vocab.length;
+  document.getElementById('grammar-list').innerHTML=t.grammar.map((g,idx)=>`<div class="grammar-item expandable-item" onclick="toggleLearningItem(this)"><div class="grammar-pattern">${escapeHTML(g.pattern)}</div><div class="grammar-meaning">${escapeHTML(g.meaningVN||g.meaning)}</div><div class="expand-detail grammar-expand"><div><b>Cấu trúc:</b> ${escapeHTML(g.structure)}</div><div><b>Bối cảnh:</b> ${escapeHTML(g.contextBullets?.[1]||g.context)}</div><div class="mini-examples"><b>Ví dụ:</b><br>${(g.examples||[]).map((e,i)=>`${i+1}. ${escapeHTML(e.jp||e)} <span>(${escapeHTML(e.vi||'')})</span>`).join('<br>')}</div><button class="detail-button" onclick="event.stopPropagation(); lvOpenDetail('grammar', state.topic.grammar[${idx}])">Mở chi tiết</button></div></div>`).join('');
+  document.getElementById('grammar-count').textContent=t.grammar.length;
+  const sh=document.querySelectorAll('.sidebar-block-header h4'); if(sh[0]) sh[0].textContent=`📖 ${T.vocab}`; if(sh[1]) sh[1].textContent=`🔧 ${T.grammar}`;
+}
+function lvOpenDetail(type,item){
+  const isV=type==='vocab';
+  const level=item._level || state.level || libraryState?.level || 'JLPT';
+  const html=isV?`
+    <div class="modal-clean-head"><span>📖</span><div><small>Từ vựng · ${escapeHTML(level)}</small><h2 class="modal-title-jp">${escapeHTML(item.jp)}</h2><p class="modal-reading">${escapeHTML(item.r||'')}</p></div></div>
+    <div class="modal-meaning">${escapeHTML(item.vn||'')}</div>
+    <div class="modal-grid">
+      <section><h4>Loại từ / sắc thái</h4><p>${escapeHTML(item.posVN||'Biểu hiện dùng trong văn viết hoặc hội thoại thường ngày.')}</p><p>${escapeHTML(item.nuanceVN||item.nuance||'')}</p></section>
+      <section><h4>Bối cảnh sử dụng</h4><p>${escapeHTML(item.contextVN||item.context||'')}</p></section>
+      <section class="wide"><h4>Collocation hay gặp</h4><div class="modal-chips">${(item.collocations||[]).map(c=>`<span>${escapeHTML(c.jp)} <em>(${escapeHTML(c.vi)})</em></span>`).join('')}</div></section>
+      <section class="wide"><h4>Ví dụ thực tế</h4><ol class="modal-examples">${(item.examples||[]).map(e=>`<li><b>${escapeHTML(e.jp||e)}</b><small>${escapeHTML(e.vi||'')}</small></li>`).join('')}</ol></section>
+    </div>`:`
+    <div class="modal-clean-head"><span>🔧</span><div><small>Ngữ pháp · ${escapeHTML(level)}</small><h2 class="modal-title-jp">${escapeHTML(item.pattern)}</h2></div></div>
+    <div class="modal-meaning">${escapeHTML(item.meaningVN||item.meaning||'')}</div>
+    <div class="modal-grid">
+      <section><h4>Cấu trúc</h4><p class="structure-line">${escapeHTML(item.structure||'')}</p></section>
+      <section><h4>Bối cảnh dùng</h4><ul class="modal-bullets">${(item.contextBullets||[item.context]).map(b=>`<li>${escapeHTML(b)}</li>`).join('')}</ul></section>
+      <section class="wide"><h4>Ý nghĩa chi tiết</h4><p>${escapeHTML(item.note||item.meaningVN||item.meaning||'')}</p></section>
+      <section class="wide"><h4>Ví dụ</h4><ol class="modal-examples">${(item.examples||[]).map(e=>`<li><b>${escapeHTML(e.jp||e)}</b><small>${escapeHTML(e.vi||'')}</small></li>`).join('')}</ol></section>
+    </div>`;
+  const modal=document.getElementById('learning-modal'), content=document.getElementById('learning-modal-content');
+  if(content) content.innerHTML=html;
+  modal?.classList.remove('step-hidden');
+}
+
+function renderFreeTags(){
+  const wrap=document.querySelector('.free-examples'); if(!wrap) return;
+  wrap.innerHTML=`<span class="free-ex-label">${escapeHTML(ui().freeTags)}</span>`+FREE_TOPIC_TAGS_20.map(tag=>`<button class="quick-chip" onclick="setFreeTopic('${tag.replace(/'/g,"\\'")}')">${escapeHTML(tag)}</button>`).join('');
+}
+function getSuggestions(){
+  const input=document.getElementById('free-topic-input').value.trim();
+  if(!input) return document.getElementById('free-topic-input').focus();
+  state.freeTopic=input;
+  state.topic=lvMakeTopic(state.level,input,FREE_TOPIC_TAGS_20.indexOf(input)+11);
+  state.topic.emoji='✏️';
+  state.promptIdx=0; renderSidebar(); renderPrompt(); showStep('step-writing'); scrollToStep('step-writing'); clearFeedback(); applyUITranslations();
+}
+function selectMode(mode){
+  state.mode=mode;
+  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('active'));
+  document.getElementById('mode-'+mode)?.classList.add('active');
+  if(mode==='topic'){ renderTopics(); showStep('step-topics'); scrollToStep('step-topics'); }
+  else if(mode==='free'){ showStep('step-free-input'); scrollToStep('step-free-input'); renderFreeTags(); }
+  else if(mode==='drill'){ initDrill(); showStep('step-drill'); scrollToStep('step-drill'); }
+}
+function showStep(id){
+  const steps=['step-mode','step-topics','step-free-input','step-drill','step-writing'];
+  steps.forEach(s=>document.getElementById(s)?.classList.add('step-hidden'));
+  document.getElementById(id)?.classList.remove('step-hidden');
+}
+function backToMode(){ showStep('step-mode'); scrollToStep('step-mode'); }
+function backToTopics(){
+  if(state.mode==='free') { showStep('step-free-input'); scrollToStep('step-free-input'); }
+  else if(state.mode==='drill') { showStep('step-drill'); scrollToStep('step-drill'); }
+  else { showStep('step-topics'); scrollToStep('step-topics'); }
+  document.getElementById('next-actions').style.display='none';
+}
+function renderLibraryLevels(){
+  const wrap=document.getElementById('library-levels'); if(!wrap) return;
+  wrap.innerHTML=LEVELS.map(l=>`<button class="library-level ${libraryState.level===l.id?'active':''}" onclick="libraryState.level='${l.id}'; libraryState.topicIdx=null; renderLibraryLevels(); renderLibraryTopics();">${l.name}<span>${escapeHTML(l.sub)}</span></button>`).join('');
+  document.getElementById('library-tab-vocab')?.classList.toggle('active',libraryState.type==='vocab');
+  document.getElementById('library-tab-grammar')?.classList.toggle('active',libraryState.type==='grammar');
+  setText('#library-title', libraryState.type==='vocab'?ui().libraryVocab:ui().libraryGrammar); setText('#library-desc', ui().libraryDesc);
+}
+function renderLibraryTopics(){
+  const q=(document.getElementById('library-search')?.value||'').toLowerCase().trim();
+  const sort=document.getElementById('library-sort')?.value||'default';
+  let topics=(TOPICS[libraryState.level]||[]).map((t,i)=>({...t,_idx:i})).filter(t=>!q || `${t.name} ${t.jpName} ${t.vocab.map(v=>v.jp+v.vn).join(' ')} ${t.grammar.map(g=>g.pattern+g.meaning).join(' ')}`.toLowerCase().includes(q));
+  if(sort==='az') topics.sort((a,b)=>localTopicName(a).localeCompare(localTopicName(b))); if(sort==='za') topics.sort((a,b)=>localTopicName(b).localeCompare(localTopicName(a)));
+  const grid=document.getElementById('library-topic-grid'); if(!grid) return;
+  grid.innerHTML=topics.map(t=>`<button class="library-topic ${libraryState.topicIdx===t._idx?'active':''}" onclick="libraryState.topicIdx=${t._idx}; renderLibraryTopics(); renderLibraryItems();"><span>${t.emoji}</span><b>${escapeHTML(t.jpName)}</b><small>${escapeHTML(localTopicName(t))}</small></button>`).join('');
+  if(libraryState.topicIdx==null && topics[0]) libraryState.topicIdx=topics[0]._idx;
+  renderLibraryItems();
+}
+function renderLibraryItems(){
+  const box=document.getElementById('library-items'); if(!box) return;
+  const topic=(TOPICS[libraryState.level]||[])[libraryState.topicIdx];
+  if(!topic){ box.innerHTML='<div class="empty-state">Chọn một chủ đề để xem nội dung.</div>'; return; }
+  const items=libraryState.type==='vocab'?topic.vocab:topic.grammar;
+  box.innerHTML=`<div class="library-items-head"><div><h3>${topic.emoji} ${escapeHTML(topic.jpName)}</h3><p>${escapeHTML(localTopicName(topic))} · ${libraryState.level} · ${items.length} mục</p></div></div><div class="library-card-grid">${items.map((it,i)=>libraryState.type==='vocab'?`<button class="library-item-card" onclick="lvOpenDetail('vocab', TOPICS['${libraryState.level}'][${libraryState.topicIdx}].vocab[${i}])"><b>${escapeHTML(it.jp)}</b><span>${escapeHTML(it.r)}</span><small>${escapeHTML(it.vn)}</small></button>`:`<button class="library-item-card grammar" onclick="lvOpenDetail('grammar', TOPICS['${libraryState.level}'][${libraryState.topicIdx}].grammar[${i}])"><b>${escapeHTML(it.pattern)}</b><small>${escapeHTML(it.meaningVN||it.meaning)}</small></button>`).join('')}</div>`;
+}
+
+function buildDrillItems(level){
+  const topics=TOPICS[level]||[];
+  const arr=[];
+  for(let i=0;i<300;i++){
+    const topic=topics[i%topics.length];
+    const base=buildDrillSentence(level, topic, i);
+    const stage = i<80?'easy': i<190?'medium':'hard';
+    base.stage=stage; base.topic=topic; base.no=i+1;
+    if(stage==='medium' && base.direction==='vn-jp') base.source += ' Hãy viết tự nhiên hơn bằng một lý do ngắn.';
+    if(stage==='hard' && base.direction==='vn-jp') base.source += ' Hãy dùng cấu trúc gợi ý và viết câu có sắc thái văn viết.';
+    arr.push(base);
+  }
+  return arr;
+}
+function initDrill(){
+  state.drill={idx:0,correct:0,answered:0,totalScore:0,unlockedNext:false,items:buildDrillItems(state.level)};
+  renderDrill();
+}
+function renderDrill(){
+  const d=state.drill; if(!d) return;
+  const item=d.items[d.idx], T=ui();
+  const avg=d.answered?Math.round(d.totalScore/d.answered):0;
+  document.getElementById('drill-level-badge').textContent=`${state.level} · ${T.drillTitle}`;
+  document.getElementById('drill-progress-text').textContent=`${item.no}/300 · ${item.stage==='easy'?'Dễ':item.stage==='medium'?'Trung bình':'Khó'}`;
+  document.getElementById('drill-streak').textContent=d.answered?`Điểm TB ${avg}`:'Điểm TB 0';
+  document.getElementById('drill-progress-fill').style.width=`${((d.idx+1)/300)*100}%`;
+  document.getElementById('drill-direction').textContent=item.direction==='vn-jp'?'🇻🇳 → 🇯🇵 Dịch sang tiếng Nhật':'🇯🇵 → 🇻🇳 Dịch sang tiếng Việt';
+  document.getElementById('drill-sentence').innerHTML=`<span class="drill-topic-badge">${escapeHTML(item.topic.jpName)} · ${escapeHTML(localTopicName(item.topic))}</span>${escapeHTML(item.source)}`;
+  document.getElementById('drill-vocab-hint').textContent=item.hint;
+  const ans=document.getElementById('drill-answer'); if(ans) ans.value=''; document.getElementById('drill-char-count').textContent='0 '+T.chars;
+  document.getElementById('drill-feedback').innerHTML=''; document.getElementById('drill-next-btn').style.display='none'; d.unlockedNext=false;
+  applyUITranslationsShallow();
+}
+function applyUITranslationsShallow(){ const T=ui(); setText('#drill-check-btn',T.check); const b=document.querySelectorAll('.drill-nav button'); if(b[0])b[0].textContent=T.previous; if(b[1])b[1].textContent=T.skip; if(b[2])b[2].textContent=T.next; if(b[3])b[3].textContent=T.backMode; }
+function normalizeAnswer(s){ return String(s||'').toLowerCase().replace(/[。、．，,！？!?\s]/g,'').trim(); }
+function scoreDrill(user, model, direction){
+  const u=normalizeAnswer(user), m=normalizeAnswer(model);
+  if(!u) return 0;
+  if(u===m) return 100;
+  if(direction==='jp-vn'){
+    const words=String(model).toLowerCase().split(/\s+/).filter(w=>w.length>2);
+    const hit=words.filter(w=>String(user).toLowerCase().includes(w)).length;
+    return Math.min(95, Math.round((hit/Math.max(words.length,1))*100));
+  }
+  let common=0; [...new Set(m.split(''))].forEach(ch=>{ if(u.includes(ch)) common++; });
+  return Math.min(92, Math.round((common/Math.max(new Set(m.split('')).size,1))*100));
+}
+function submitDrill(){
+  const d=state.drill, item=d.items[d.idx];
+  const answer=document.getElementById('drill-answer').value.trim();
+  if(!answer) return document.getElementById('drill-answer').focus();
+  const score=scoreDrill(answer,item.answer,item.direction);
+  d.answered++; d.totalScore+=score; if(score>=80) d.correct++; d.unlockedNext=true;
+  const status=score>=90?'Rất tốt':score>=75?'Đạt':score>=50?'Gần đúng':'Cần sửa';
+  const cls=score>=80?'drill-good':score>=50?'drill-mid':'drill-low';
+  document.getElementById('drill-feedback').innerHTML=`<div class="drill-score-card ${cls}"><div class="drill-score-main"><div class="drill-score-circle">${score}</div><div><b>${status}</b><p>${score>=80?'Bạn có thể qua câu tiếp theo.':'Hãy so sánh với câu mẫu rồi thử lại hoặc bấm bỏ qua.'}</p></div></div><div class="drill-answer-model"><small>Câu mẫu</small><strong>${escapeHTML(item.answer)}</strong></div></div>`;
+  document.getElementById('drill-next-btn').style.display='inline-block';
+  document.getElementById('drill-streak').textContent=`Điểm TB ${Math.round(d.totalScore/d.answered)} · Đúng ${d.correct}/${d.answered}`;
+}
+function nextDrill(){ const d=state.drill; if(!d) return; d.idx=Math.min(d.idx+1,d.items.length-1); renderDrill(); }
+function prevDrill(){ const d=state.drill; if(!d) return; d.idx=Math.max(d.idx-1,0); renderDrill(); }
+function skipDrill(){ nextDrill(); }
+function clearDrill(){ const ans=document.getElementById('drill-answer'); if(ans) ans.value=''; document.getElementById('drill-char-count').textContent='0 '+ui().chars; document.getElementById('drill-feedback').innerHTML=''; }
+
+document.addEventListener('DOMContentLoaded',()=>{
+  renderLevels(); renderFreeTags();
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.textContent.trim()==='VI'));
+  applyUITranslations();
+  const da=document.getElementById('drill-answer');
+  if(da) da.addEventListener('input',()=>{ document.getElementById('drill-char-count').textContent=da.value.length+' '+ui().chars; });
+});
+
+// PATCH 2026-05-D2 — language-safe nav active state
+function setActiveNav(kind){
+  const order={home:0,practice:1,vocab:2,grammar:3};
+  document.querySelectorAll('.nav-link').forEach((a,i)=>a.classList.toggle('active', i===order[kind]));
+}
