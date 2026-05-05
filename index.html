@@ -18,7 +18,15 @@
       </a>
       <div class="nav-links">
         <a href="#" class="nav-link active" onclick="goHome(); return false;">Trang chủ</a>
-        <a href="#practice-section" class="nav-link">Luyện viết</a>
+        <a href="#practice-section" class="nav-link" onclick="goPractice(); return false;">Luyện viết</a>
+        <a href="#library-section" class="nav-link" onclick="openLibrary('vocab'); return false;">Từ vựng</a>
+        <a href="#library-section" class="nav-link" onclick="openLibrary('grammar'); return false;">Ngữ pháp</a>
+      </div>
+      <div class="lang-switcher" aria-label="Chọn ngôn ngữ">
+        <button class="lang-btn active" onclick="setUILanguage('en', this)">EN</button>
+        <button class="lang-btn" onclick="setUILanguage('zh', this)">中文</button>
+        <button class="lang-btn" onclick="setUILanguage('ja', this)">日本語</button>
+        <button class="lang-btn" onclick="setUILanguage('vi', this)">VI</button>
       </div>
     </div>
   </nav>
@@ -38,11 +46,38 @@
         <div class="hero-stats">
           <span><strong>5</strong> cấp độ</span>
           <span class="dot-sep">·</span>
-          <span><strong>500</strong> chủ đề</span>
+          <span><strong>30+</strong> chủ đề</span>
           <span class="dot-sep">·</span>
           <span><strong>AI</strong> feedback</span>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section id="library-section" class="library-section step-hidden">
+    <div class="library-inner">
+      <div class="library-top">
+        <div>
+          <div class="hero-badge">学習ライブラリ</div>
+          <h2 class="library-title" id="library-title">Từ vựng theo cấp độ</h2>
+          <p class="library-desc" id="library-desc">Chọn cấp độ, chọn chủ đề rồi bấm vào từng mục để xem giải thích chi tiết.</p>
+        </div>
+        <div class="library-tabs">
+          <button class="library-tab active" id="library-tab-vocab" onclick="openLibrary('vocab')">📖 Từ vựng</button>
+          <button class="library-tab" id="library-tab-grammar" onclick="openLibrary('grammar')">🔧 Ngữ pháp</button>
+        </div>
+      </div>
+      <div class="library-levels" id="library-levels"></div>
+      <div class="library-toolbar">
+        <input id="library-search" class="library-search" type="text" placeholder="Tìm chủ đề, từ vựng, ngữ pháp..." oninput="renderLibraryTopics()" />
+        <select id="library-sort" class="library-sort" onchange="renderLibraryTopics()">
+          <option value="default">Sắp xếp mặc định</option>
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+        </select>
+      </div>
+      <div id="library-topic-grid" class="library-topic-grid"></div>
+      <div id="library-items" class="library-items"></div>
     </div>
   </section>
 
@@ -73,20 +108,20 @@
         <div class="mode-card" id="mode-topic" onclick="selectMode('topic')">
           <div class="mode-icon">📚</div>
           <h3 class="mode-title">Viết theo chủ đề</h3>
-          <p class="mode-desc">Chọn 1 trong 100 chủ đề theo cấp độ, có sẵn từ vựng, ngữ pháp và 3 đề bài.</p>
-          <div class="mode-tag">100 chủ đề/cấp</div>
+          <p class="mode-desc">Chọn từ danh sách chủ đề có sẵn. Nhận gợi ý từ vựng và ngữ pháp phù hợp để viết ngay.</p>
+          <div class="mode-tag">Học có hệ thống</div>
         </div>
         <div class="mode-card" id="mode-free" onclick="selectMode('free')">
           <div class="mode-icon">✏️</div>
           <h3 class="mode-title">Luyện viết tự do</h3>
-          <p class="mode-desc">Tự nhập chủ đề muốn luyện, nhận gợi ý nhanh rồi viết theo cách của bạn.</p>
-          <div class="mode-tag">Tự chọn nội dung</div>
+          <p class="mode-desc">Nhập chủ đề bất kỳ bạn muốn viết. AI sẽ gợi ý từ vựng và ngữ pháp liên quan ngay lập tức.</p>
+          <div class="mode-tag">Ôn luyện sáng tạo</div>
         </div>
         <div class="mode-card mode-card-featured" id="mode-drill" onclick="selectMode('drill')">
           <div class="mode-icon">⚡</div>
           <h3 class="mode-title">Luyện viết 2 chiều</h3>
-          <p class="mode-desc">Dịch Việt↔Nhật theo từng câu, luyện phản xạ viết chính xác và có thể bỏ qua khi cần.</p>
-          <div class="mode-tag mode-tag-featured">Dịch 2 chiều ⭐</div>
+          <p class="mode-desc">100–200 câu mỗi cấp từ dễ đến khó. Dịch Việt↔Nhật, có nút Skip & Previous. Phải đúng mới qua câu tiếp!</p>
+          <div class="mode-tag mode-tag-featured">Luyện tập chuyên sâu ⭐</div>
         </div>
       </div>
     </section>
@@ -97,8 +132,21 @@
         <div class="step-num">03</div>
         <div>
           <h2 class="step-title">Chọn chủ đề <span class="level-badge" id="topic-level-badge"></span></h2>
-          <p class="step-desc">Mỗi chủ đề có 3 đề bài khác nhau, kèm gợi ý có thể mở rộng tại chỗ</p>
+          <p class="step-desc">Mỗi chủ đề kèm từ vựng và ngữ pháp phù hợp cấp độ bạn chọn</p>
         </div>
+      </div>
+      <div class="topic-tools">
+        <div class="topic-search-wrap">
+          <span>🔎</span>
+          <input id="topic-search" class="topic-search" type="text" placeholder="Tìm chủ đề: 家族, 仕事, AI..." oninput="renderTopics()" />
+        </div>
+        <select id="topic-filter" class="topic-filter" onchange="renderTopics()">
+          <option value="all">Tất cả nhóm chủ đề</option>
+          <option value="life">Đời sống</option>
+          <option value="study">Học tập/công việc</option>
+          <option value="society">Xã hội/công nghệ</option>
+          <option value="culture">Văn hóa/giải trí</option>
+        </select>
       </div>
       <div class="topic-grid" id="topic-grid"></div>
     </section>
@@ -109,15 +157,22 @@
         <div class="step-num">03</div>
         <div>
           <h2 class="step-title">Nhập chủ đề muốn viết</h2>
-          <p class="step-desc">Chọn tag gợi ý hoặc nhập chủ đề riêng của bạn</p>
+          <p class="step-desc">Nhập bất kỳ chủ đề nào, AI sẽ gợi ý từ vựng và ngữ pháp liên quan</p>
         </div>
       </div>
       <div class="free-input-box">
         <div class="free-input-inner">
-          <input type="text" id="free-topic-input" class="free-topic-input" placeholder="Nhập chủ đề muốn viết, ví dụ: Du lịch Nhật Bản, Công việc, Môi trường..." />
+          <input type="text" id="free-topic-input" class="free-topic-input" placeholder="Ví dụ: Kỳ nghỉ hè, Sở thích, Thức ăn yêu thích..." />
           <button class="btn-suggest" onclick="getSuggestions()">Gợi ý ngay ✨</button>
         </div>
-        <div class="free-examples"></div>
+        <div class="free-examples">
+          <span class="free-ex-label">Gợi ý nhanh:</span>
+          <button class="quick-chip" onclick="setFreeTopic('Du lịch Nhật Bản')">Du lịch Nhật Bản</button>
+          <button class="quick-chip" onclick="setFreeTopic('Gia đình')">Gia đình</button>
+          <button class="quick-chip" onclick="setFreeTopic('Công việc')">Công việc</button>
+          <button class="quick-chip" onclick="setFreeTopic('Phim anime')">Phim anime</button>
+          <button class="quick-chip" onclick="setFreeTopic('Thời tiết')">Thời tiết</button>
+        </div>
       </div>
       <div id="free-loading" class="loading-bar" style="display:none;">
         <div class="loading-dots"><span></span><span></span><span></span></div>
@@ -138,6 +193,18 @@
             <div class="drill-progress-fill" id="drill-progress-fill"></div>
           </div>
         </div>
+
+        <div class="drill-topic-panel">
+          <div>
+            <h3>Chọn chủ đề luyện dịch</h3>
+            <p>100 chủ đề/cấp · mỗi chủ đề có 40 câu Việt↔Nhật từ ngắn đến dài.</p>
+          </div>
+          <div class="drill-topic-actions">
+            <input id="drill-topic-search" class="topic-search" placeholder="Tìm chủ đề luyện dịch..." oninput="renderDrillTopics()" />
+            <button class="btn-secondary" onclick="renderDrillTopics()">Lọc</button>
+          </div>
+        </div>
+        <div id="drill-topic-grid" class="drill-topic-grid"></div>
 
         <div class="drill-card" id="drill-card">
           <div class="drill-direction" id="drill-direction">🇻🇳 → 🇯🇵 Dịch sang tiếng Nhật</div>
@@ -219,6 +286,13 @@
     </section>
 
   </main>
+
+  <div id="learning-modal" class="learning-modal step-hidden" onclick="closeLearningModal(event)">
+    <div class="learning-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeLearningModal()">×</button>
+      <div id="learning-modal-content"></div>
+    </div>
+  </div>
 
   <footer class="footer">
     <div class="footer-inner">

@@ -1009,564 +1009,331 @@ document.addEventListener('DOMContentLoaded', () => {
   renderLevels();
 });
 
+// ============================================================
+// PATCH 2026-05-B — Library header, richer topic data, modal details, search/filter, drill by topic
+// ============================================================
+const LV_TOPIC_JP_MAP = {
+  'Tự giới thiệu':'自己紹介','Gia đình':'家族','Bạn bè':'友達','Trường học':'学校','Lớp học':'教室','Giáo viên':'先生','Môn học yêu thích':'好きな科目','Một ngày của tôi':'私の一日','Buổi sáng':'朝','Buổi tối':'夜','Cuối tuần':'週末','Sở thích':'趣味','Âm nhạc':'音楽','Phim ảnh':'映画','Anime':'アニメ','Manga':'漫画','Thể thao':'スポーツ','Bóng đá':'サッカー','Mua sắm':'買い物','Quần áo':'服','Thức ăn':'食べ物','Đồ uống':'飲み物','Bữa sáng':'朝ごはん','Bữa trưa':'昼ごはん','Bữa tối':'晩ごはん','Nhà hàng':'レストラン','Quán cà phê':'カフェ','Nấu ăn đơn giản':'簡単な料理','Trái cây':'果物','Rau củ':'野菜','Thời tiết':'天気','Mùa xuân':'春','Mùa hè':'夏','Mùa thu':'秋','Mùa đông':'冬','Sinh nhật':'誕生日','Ngày nghỉ':'休みの日','Kỳ nghỉ hè':'夏休み','Du lịch gần nhà':'近くへの旅行','Ga tàu':'駅','Xe buýt':'バス','Đi bộ':'散歩','Xe đạp':'自転車','Nhà của tôi':'私の家','Phòng của tôi':'私の部屋','Thành phố của tôi':'私の町','Công viên':'公園','Siêu thị':'スーパー','Hiệu sách':'本屋','Bệnh viện':'病院','Ngân hàng':'銀行','Bưu điện':'郵便局','Khách sạn':'ホテル','Động vật':'動物','Thú cưng':'ペット','Mèo':'猫','Chó':'犬','Hoa':'花','Màu sắc':'色','Số đếm':'数','Thời gian':'時間','Lịch trình':'予定','Đi học':'通学','Đi làm':'通勤','Đi chơi':'遊びに行くこと','Gặp bạn':'友達に会うこと','Gọi điện':'電話','Nhắn tin':'メッセージ','Ảnh chụp':'写真','Quà tặng':'プレゼント','Tiền bạc':'お金','Sức khỏe':'健康','Đau ốm':'病気','Tập thể dục nhẹ':'軽い運動','Ngủ':'睡眠','Dậy sớm':'早起き','Dọn phòng':'部屋の掃除','Giặt đồ':'洗濯','Tắm rửa':'シャワー','Đánh răng':'歯磨き','Đọc sách':'読書','Viết nhật ký':'日記を書くこと','Học tiếng Nhật':'日本語の勉強','Kanji yêu thích':'好きな漢字','Hiragana và Katakana':'ひらがなとカタカナ','Cửa hàng tiện lợi':'コンビニ','Món Nhật yêu thích':'好きな日本料理','Việt Nam':'ベトナム','Nhật Bản':'日本','Ngôn ngữ':'言語','Ước mơ nhỏ':'小さな夢','Người tôi thích':'好きな人','Việc tôi ghét':'嫌いなこと','Kỷ niệm vui':'楽しい思い出','Ngày mưa':'雨の日','Ngày nắng':'晴れの日','Đi biển':'海へ行くこと','Đi núi':'山へ行くこと','Lễ hội':'祭り','Tết':'旧正月',
+  'Du lịch':'旅行','Công việc':'仕事','Phim và âm nhạc':'映画と音楽','Thói quen hằng ngày':'毎日の習慣','Kế hoạch cuối tuần':'週末の予定','Kỳ nghỉ đáng nhớ':'思い出に残る休暇','Kinh nghiệm học tiếng Nhật':'日本語学習の経験','Mục tiêu năm nay':'今年の目標','Việc làm thêm':'アルバイト','Công ty mơ ước':'理想の会社','Đồng nghiệp':'同僚','Sếp tốt':'良い上司','Phỏng vấn xin việc':'就職面接','Email đơn giản':'簡単なメール','Cuộc hẹn':'約束','Xin lỗi và cảm ơn':'謝罪と感謝','Giúp đỡ người khác':'人を助けること','Sống một mình':'一人暮らし','Thuê nhà':'部屋を借りること','Chuyển nhà':'引っ越し','Nội trợ':'家事','Tiết kiệm tiền':'節約','Mua hàng online':'オンラインショッピング','So sánh sản phẩm':'商品の比較','Quà lưu niệm':'お土産','Nhà hàng yêu thích':'好きなレストラン','Công thức món ăn':'料理のレシピ','Ăn uống lành mạnh':'健康的な食生活','Tập thể dục':'運動','Bị cảm':'風邪をひくこと','Đi khám bệnh':'病院へ行くこと','Giấc ngủ':'睡眠','Stress nhẹ':'軽いストレス','Đi tàu điện':'電車に乗ること','Lạc đường':'道に迷うこと','Hỏi đường':'道を尋ねること','Đặt phòng khách sạn':'ホテルを予約すること','Sân bay':'空港','Kế hoạch du lịch Nhật':'日本旅行の計画','Lễ hội Nhật':'日本の祭り','Văn hóa tặng quà':'贈り物の文化','Phong tục chào hỏi':'あいさつの習慣','Gia đình hiện đại':'現代の家族','Bạn thân':'親友','Hàng xóm':'近所の人','Nuôi thú cưng':'ペットを飼うこと','Mạng xã hội':'SNS','Điện thoại thông minh':'スマートフォン','Ứng dụng hữu ích':'便利なアプリ','Học online':'オンライン学習','Xem video':'動画を見ること','Đọc tin tức':'ニュースを読むこと','Sở thích mới':'新しい趣味','Học nhạc cụ':'楽器を習うこと','Chơi thể thao':'スポーツをすること','Leo núi':'登山','Cắm trại':'キャンプ','Chụp ảnh':'写真撮影','Sách yêu thích':'好きな本','Phim gần đây':'最近見た映画','Bài hát yêu thích':'好きな歌','Anime đề xuất':'おすすめのアニメ','Manga đề xuất':'おすすめの漫画','Thành phố đáng sống':'住みやすい町','Nông thôn':'田舎','Giao thông công cộng':'公共交通機関','Ô nhiễm nhẹ':'軽い汚染','Tái chế':'リサイクル','Tiết kiệm điện':'節電','Thời tiết xấu':'悪い天気','Mùa yêu thích':'好きな季節','Sự kiện ở trường':'学校行事','Kỳ thi':'試験','Học bổng':'奨学金','Câu lạc bộ':'クラブ活動','Giáo viên tốt':'良い先生','Môn khó':'難しい科目','Tương lai':'将来','Ước mơ nghề nghiệp':'将来の夢','Người truyền cảm hứng':'影響を受けた人','Kỷ niệm thời thơ ấu':'子どものころの思い出','Lỗi từng mắc':'過去の失敗','Điều muốn thử':'挑戦したいこと','Thói quen muốn bỏ':'やめたい習慣','Thói quen tốt':'良い習慣','Ngày bận rộn':'忙しい日','Ngày thư giãn':'リラックスする日','Tin nhắn cho bạn':'友達へのメッセージ','Mời bạn đi chơi':'友達を誘うこと','Từ chối lịch hẹn':'約束を断ること','Nhờ vả':'お願いすること','Cảm nhận về Nhật Bản':'日本への印象','So sánh Việt Nam và Nhật':'ベトナムと日本の比較','Mục tiêu JLPT':'JLPTの目標','Kế hoạch học tập':'学習計画',
+  'Môi trường':'環境','Giáo dục':'教育','Văn hóa Nhật':'日本文化','Công nghệ và mạng xã hội':'技術とSNS','Cuộc sống đô thị':'都市生活','Làm việc nhóm':'チームワーク','Kỹ năng giao tiếp':'コミュニケーション能力','Quản lý thời gian':'時間管理','Áp lực học tập':'学習のプレッシャー','Áp lực công việc':'仕事のストレス','Cân bằng cuộc sống':'生活のバランス','Lựa chọn nghề nghiệp':'職業選択','Chuyển việc':'転職','Làm việc từ xa':'リモートワーク','Học ngoại ngữ':'外国語学習','Tự học':'自主学習','Du học Nhật Bản':'日本留学','Thi cử':'試験制度','Giáo viên lý tưởng':'理想の教師','Trường học tương lai':'未来の学校','Tin giả':'フェイクニュース','Bảo mật thông tin':'情報セキュリティ','Phụ thuộc điện thoại':'スマホ依存','Thanh toán điện tử':'電子決済','Văn hóa công ty':'企業文化','Quan hệ cấp trên cấp dưới':'上下関係','Gia đình và sự nghiệp':'家族とキャリア','Kết hôn muộn':'晩婚化','Nuôi con':'子育て','Sức khỏe tinh thần':'メンタルヘルス','Du lịch bền vững':'持続可能な旅行','Du lịch một mình':'一人旅','Phép lịch sự nơi công cộng':'公共マナー','Tàu điện Nhật Bản':'日本の電車','Đúng giờ':'時間厳守','Tình nguyện':'ボランティア','Hoạt động cộng đồng':'地域活動','Bảo vệ động vật':'動物保護','Biến đổi khí hậu':'気候変動','Không gian xanh':'緑地','Kẹt xe':'渋滞','Sống ở nông thôn':'田舎暮らし','Di cư lên thành phố':'都市への移住','Ẩm thực truyền thống':'伝統料理','Thức ăn nhanh':'ファストフード','Anime và văn hóa đại chúng':'アニメと大衆文化','Thể thao và xã hội':'スポーツと社会','Thành công là gì':'成功とは何か','Thất bại và bài học':'失敗と学び','Sự tự tin':'自信','Động lực cá nhân':'個人の動機','Kỷ luật bản thân':'自己管理','Tiêu dùng thông minh':'賢い消費','Khoảng cách thế hệ':'世代間ギャップ','Vai trò của phụ nữ':'女性の役割','Bình đẳng giới':'ジェンダー平等','Người cao tuổi':'高齢者','Xã hội già hóa':'高齢化社会','AI trong đời sống':'生活の中のAI','Tương lai công việc':'仕事の未来','Sốc văn hóa':'カルチャーショック','Ngôn ngữ và tư duy':'言語と思考','Dịch thuật':'翻訳','Thuyết trình':'プレゼンテーション','Tranh luận':'議論','Ý kiến cá nhân':'個人の意見','Cuộc sống tối giản':'ミニマルな生活','Hạnh phúc hằng ngày':'日常の幸せ',
+  'Kinh tế xã hội':'社会経済','Khoa học và tương lai':'科学と未来','Quan hệ con người':'人間関係','Toàn cầu hóa':'グローバル化','Già hóa dân số':'少子高齢化','Thiếu lao động':'労働力不足','Bất bình đẳng kinh tế':'経済格差','Phúc lợi xã hội':'社会福祉','Chính sách giáo dục':'教育政策','Cải cách thi cử':'試験改革','Đại học và việc làm':'大学と就職','Làm việc từ xa':'リモートワーク','Văn hóa làm thêm giờ':'残業文化','Cân bằng công việc cuộc sống':'ワークライフバランス','Lãnh đạo':'リーダーシップ','Đạo đức nghề nghiệp':'職業倫理','Khởi nghiệp':'起業','Đổi mới sáng tạo':'イノベーション','AI và việc làm':'AIと雇用','Tự động hóa':'自動化','Dữ liệu cá nhân':'個人データ','Quyền riêng tư':'プライバシー','An ninh mạng':'サイバーセキュリティ','Tự do ngôn luận online':'オンライン上の言論の自由','Nền tảng mạng xã hội':'SNSプラットフォーム','Nghiện kỹ thuật số':'デジタル依存','Y tế từ xa':'遠隔医療','Đạo đức trong y học':'医療倫理','Năng lượng tái tạo':'再生可能エネルギー','Chính sách môi trường':'環境政策','Kinh tế tuần hoàn':'循環型経済','Tiêu dùng bền vững':'持続可能な消費','Trách nhiệm doanh nghiệp':'企業責任','Du lịch quá tải':'オーバーツーリズム','Bảo tồn văn hóa':'文化保護','Sức mạnh mềm':'ソフトパワー','Giao lưu quốc tế':'国際交流','Di cư lao động':'労働移民','Đa văn hóa':'多文化共生','Quy hoạch đô thị':'都市計画','Cô lập xã hội':'社会的孤立','Stress xã hội':'社会的ストレス','Tỷ lệ sinh thấp':'低出生率','Bình đẳng cơ hội':'機会の平等','Chăm sóc dài hạn':'介護','Đạo đức công dân':'市民倫理','Chính sách thuế':'税制','Lương tối thiểu':'最低賃金','Kinh tế chia sẻ':'シェアリングエコノミー','Tiền điện tử':'暗号資産','Không tiền mặt':'キャッシュレス','Chuỗi cung ứng':'サプライチェーン','Khủng hoảng lương thực':'食料危機','An toàn thực phẩm':'食品安全','Thiên tai':'自然災害','Quản lý khủng hoảng':'危機管理','Thành phố thông minh':'スマートシティ','Robot trong dịch vụ':'サービスロボット','Học tập suốt đời':'生涯学習','Năng lực phản biện':'批判的思考力','Viết học thuật':'アカデミックライティング','Tương lai Nhật Bản':'日本の未来','Tương lai Việt Nam':'ベトナムの未来',
+  'Triết học và tư duy':'哲学と思考','Chính trị và xã hội':'政治と社会','Văn học và nghệ thuật':'文学と芸術','Bản chất của hạnh phúc':'幸福の本質','Tự do và trách nhiệm':'自由と責任','Đạo đức và pháp luật':'道徳と法律','Công lý xã hội':'社会正義','Quyền lực và minh bạch':'権力と透明性','Dân chủ hiện đại':'現代民主主義','Chủ nghĩa cá nhân':'個人主義','Chủ nghĩa cộng đồng':'共同体主義','Bản sắc dân tộc':'民族的アイデンティティ','Ký ức lịch sử':'歴史的記憶','Di sản văn hóa':'文化遺産','Ngôn ngữ và quyền lực':'言語と権力','Tri thức và định kiến':'知識と偏見','Sự thật trong truyền thông':'メディアにおける真実','AI và nhân tính':'AIと人間性','Đạo đức AI':'AI倫理','Công nghệ giám sát':'監視技術','Sinh mệnh và đạo đức':'生命と倫理','Tuổi thọ và ý nghĩa sống':'長寿と生の意味','Công bằng khí hậu':'気候正義','Nghệ thuật trong khủng hoảng':'危機における芸術','Tự do biểu đạt':'表現の自由','Kiểm duyệt và trách nhiệm':'検閲と責任','Giáo dục khai phóng':'リベラルアーツ教育','Di cư và bản sắc':'移民とアイデンティティ','Quốc gia và biên giới':'国家と国境','Trật tự quốc tế':'国際秩序','Xung đột và hòa bình':'紛争と平和','Bất bình đẳng cấu trúc':'構造的不平等','Cô đơn hiện đại':'現代の孤独','Gia đình hậu hiện đại':'ポストモダンの家族','Tôn giáo trong hiện đại':'現代における宗教','Rủi ro xã hội':'リスク社会','Dữ liệu và đạo đức':'データと倫理','Thuật toán và thiên kiến':'アルゴリズムと偏見','Cái đẹp là gì':'美とは何か','Cái thiện là gì':'善とは何か','Ý chí tự do':'自由意志','Tha thứ và công lý':'許しと正義','Tương lai của giáo dục':'教育の未来','Tương lai của lao động':'労働の未来','Tương lai của nghệ thuật':'芸術の未来','Phê phán công nghệ':'技術批判','Đời sống số':'デジタル生活','Niềm tin xã hội':'社会的信頼','Hệ giá trị':'価値体系','Tính phổ quát và tương đối':'普遍性と相対性','Ý nghĩa của việc viết':'書くことの意味'
+};
+
+function lvJPTopic(name){
+  if (LV_TOPIC_JP_MAP[name]) return LV_TOPIC_JP_MAP[name];
+  if (/^[\u3040-\u30ff\u3400-\u9fffー々「」・\s]+$/.test(name)) return name;
+  return 'このテーマ';
+}
+function lvVNLevelName(level){ return ({N5:'sơ cấp',N4:'tiền trung cấp',N3:'trung cấp',N2:'tiền cao cấp',N1:'cao cấp'})[level] || 'phù hợp cấp độ'; }
+function lvCategoryForTopic(name){
+  const n=(name||'').toLowerCase();
+  if (/(học|giáo dục|trường|thi|jlpt|công việc|nghề|việc|会社|仕事|教育)/i.test(n)) return 'study';
+  if (/(xã hội|ai|công nghệ|môi trường|kinh tế|chính trị|quyền|dữ liệu|global|xã|環境|社会|技術)/i.test(n)) return 'society';
+  if (/(phim|anime|manga|âm nhạc|văn hóa|nghệ thuật|sách|lễ hội|du lịch|文化|芸術)/i.test(n)) return 'culture';
+  return 'life';
+}
+function lvPromptSet(level,name){
+  const jt=lvJPTopic(name);
+  const common={
+    N5:[`「${jt}」について、短い文で書いてください。`,`「${jt}」で好きなことを一つ紹介してください。`,`「${jt}」について、いつ・どこで・だれとするかを書いてください。`],
+    N4:[`「${jt}」について、自分の経験を入れて書いてください。`,`「${jt}」で大切だと思うことを理由と一緒に書いてください。`,`「${jt}」について、これからしたいことを具体的に書いてください。`],
+    N3:[`「${jt}」の良い点と問題点について、自分の意見を書いてください。`,`「${jt}」について、具体例を一つ挙げて考えを述べてください。`,`「${jt}」が生活に与える影響について書いてください。`],
+    N2:[`「${jt}」をめぐる現状と課題について論じてください。`,`「${jt}」が社会に与える影響を、具体例を踏まえて分析してください。`,`「${jt}」に関する問題点を一つ挙げ、解決策を提案してください。`],
+    N1:[`「${jt}」の本質について、抽象的な観点と具体例を交えて論じてください。`,`「${jt}」を現代社会の文脈から批判的に考察してください。`,`「${jt}」について、対立する二つの観点を踏まえたうえで自分の見解を述べてください。`]
+  };
+  return (common[level]||common.N3).map(jp=>({jp}));
+}
+const LV_EXTRA_VOCAB = {
+ N5:[['今日','きょう','hôm nay'],['明日','あした','ngày mai'],['昨日','きのう','hôm qua'],['人','ひと','người'],['場所','ばしょ','địa điểm'],['時間','じかん','thời gian'],['新しい','あたらしい','mới'],['古い','ふるい','cũ'],['多い','おおい','nhiều'],['少ない','すくない','ít'],['近い','ちかい','gần'],['遠い','とおい','xa'],['便利','べんり','tiện lợi'],['有名','ゆうめい','nổi tiếng'],['大きい','おおきい','to/lớn'],['小さい','ちいさい','nhỏ'],['見る','みる','xem/nhìn'],['聞く','きく','nghe/hỏi'],['書く','かく','viết'],['話す','はなす','nói']],
+ N4:[['理由','りゆう','lý do'],['経験','けいけん','kinh nghiệm'],['予定','よてい','dự định'],['必要','ひつよう','cần thiết'],['場合','ばあい','trường hợp'],['方法','ほうほう','phương pháp'],['気持ち','きもち','cảm xúc'],['意見','いけん','ý kiến'],['説明する','せつめいする','giải thích'],['紹介する','しょうかいする','giới thiệu'],['比べる','くらべる','so sánh'],['選ぶ','えらぶ','chọn'],['増える','ふえる','tăng'],['減る','へる','giảm'],['続ける','つづける','tiếp tục'],['始める','はじめる','bắt đầu'],['変わる','かわる','thay đổi'],['助ける','たすける','giúp đỡ'],['困る','こまる','gặp khó khăn'],['慣れる','なれる','quen']],
+ N3:[['影響','えいきょう','ảnh hưởng'],['課題','かだい','thách thức/vấn đề'],['原因','げんいん','nguyên nhân'],['結果','けっか','kết quả'],['解決','かいけつ','giải quyết'],['意識','いしき','ý thức'],['行動','こうどう','hành động'],['社会','しゃかい','xã hội'],['将来','しょうらい','tương lai'],['状況','じょうきょう','tình hình'],['関係','かんけい','quan hệ'],['情報','じょうほう','thông tin'],['比較する','ひかくする','so sánh'],['改善する','かいぜんする','cải thiện'],['参加する','さんかする','tham gia'],['発展する','はってんする','phát triển'],['減少する','げんしょうする','giảm sút'],['増加する','ぞうかする','gia tăng'],['重視する','じゅうしする','coi trọng'],['共有する','きょうゆうする','chia sẻ']],
+ N2:[['現状','げんじょう','hiện trạng'],['格差','かくさ','khoảng cách/bất bình đẳng'],['政策','せいさく','chính sách'],['制度','せいど','chế độ/hệ thống'],['構造','こうぞう','cấu trúc'],['負担','ふたん','gánh nặng'],['責任','せきにん','trách nhiệm'],['効率','こうりつ','hiệu suất'],['需要','じゅよう','nhu cầu'],['供給','きょうきゅう','nguồn cung'],['規制','きせい','quy định'],['促進する','そくしんする','thúc đẩy'],['是正する','ぜせいする','khắc phục'],['維持する','いじする','duy trì'],['検討する','けんとうする','xem xét'],['導入する','どうにゅうする','áp dụng/đưa vào'],['深刻化する','しんこくかする','trở nên nghiêm trọng'],['多様化する','たようかする','đa dạng hóa'],['持続可能','じぞくかのう','bền vững'],['具体策','ぐたいさく','biện pháp cụ thể']],
+ N1:[['本質','ほんしつ','bản chất'],['概念','がいねん','khái niệm'],['普遍性','ふへんせい','tính phổ quát'],['相対性','そうたいせい','tính tương đối'],['矛盾','むじゅん','mâu thuẫn'],['葛藤','かっとう','giằng co/xung đột nội tâm'],['規範','きはん','chuẩn mực'],['倫理','りんり','đạo đức'],['権力','けんりょく','quyền lực'],['主体性','しゅたいせい','tính chủ thể'],['文脈','ぶんみゃく','bối cảnh'],['論証','ろんしょう','luận chứng'],['考察する','こうさつする','suy ngẫm/phân tích'],['批判する','ひはんする','phê phán'],['定義する','ていぎする','định nghĩa'],['象徴する','しょうちょうする','tượng trưng'],['内包する','ないほうする','bao hàm'],['帰結する','きけつする','dẫn đến kết luận'],['問い直す','といなおす','xem xét lại'],['再構築する','さいこうちくする','tái cấu trúc']]
+};
+const LV_GRAMMAR_POOL = {
+ N5:[['〜は〜です','N1 は N2 です','A là B; dùng để giới thiệu, định nghĩa hoặc mô tả rất cơ bản.','Dùng trong tự giới thiệu, nói nghề nghiệp, quốc tịch, tính chất của đồ vật/người.'],['〜が好きです','N が好きです','Thích N; diễn tả sở thích hoặc cảm tình.','Dùng khi nói sở thích cá nhân, món ăn, môn học, người hoặc hoạt động yêu thích.'],['〜に行きます','場所 に/へ 行きます','Đi đến một địa điểm.','Dùng để viết lịch trình đơn giản: đi học, đi làm, đi chơi, đi du lịch.'],['〜を〜ます','N を Vます','Làm hành động với một đối tượng.','Dùng rất thường xuyên khi viết về thói quen: ăn cơm, học tiếng Nhật, đọc sách.'],['〜と〜','N と N','Và; nối hai danh từ.','Dùng để liệt kê người/vật cùng nhóm một cách đơn giản.'],['〜があります','N があります','Có đồ vật/sự việc.','Dùng khi nói trong phòng/công viên/thành phố có gì.'],['〜がいます','人/動物 がいます','Có người/động vật.','Dùng khi nói gia đình, bạn bè, thú cưng hoặc người ở địa điểm nào đó.']],
+ N4:[['〜たことがあります','Vた + ことがあります','Đã từng làm gì; nói kinh nghiệm trong quá khứ.','Phù hợp khi kể trải nghiệm du lịch, ăn món Nhật, tham gia sự kiện.'],['〜ために','Vる/Nの + ために','Để làm gì; nêu mục đích có chủ ý.','Dùng khi viết mục tiêu học tập, sức khỏe, công việc.'],['〜ようになる','Vる/Vない + ようになる','Trở nên/bắt đầu có thể làm gì hoặc thay đổi thói quen.','Dùng để nói quá trình tiến bộ: nói được tiếng Nhật, dậy sớm hơn.'],['〜と思います','普通形 + と思います','Tôi nghĩ rằng; nêu ý kiến cá nhân.','Dùng trong bài viết ngắn để đưa nhận xét mềm mại, tự nhiên.'],['〜てみる','Vて + みる','Thử làm gì xem sao.','Dùng khi viết về điều muốn thử, món ăn, chuyến đi, sở thích mới.'],['〜ほうがいい','Vた/Vない + ほうがいい','Nên làm/không nên làm gì.','Dùng khi đưa lời khuyên trong sức khỏe, học tập, đời sống.'],['〜ながら','Vます bỏ ます + ながら','Vừa làm A vừa làm B.','Dùng cho hai hành động diễn ra đồng thời như nghe nhạc khi học.']],
+ N3:[['〜によって','N + によって','Do/tùy theo/bằng cách; diễn tả nguyên nhân, phương tiện hoặc sự khác biệt.','Dùng trong bài nghị luận nhẹ khi nói ảnh hưởng của công nghệ, giáo dục, môi trường.'],['〜だけでなく〜も','A だけでなく B も','Không chỉ A mà còn B; mở rộng luận điểm.','Dùng để tăng chiều sâu cho bài viết bằng cách nêu hai mặt/hai lợi ích.'],['〜べきだ','Vる + べきだ','Nên/phải làm; thể hiện quan điểm tương đối mạnh.','Dùng khi đề xuất hành động xã hội hoặc trách nhiệm cá nhân.'],['〜一方で','普通形 + 一方で','Mặt khác/trong khi đó; so sánh hai mặt trái ngược.','Rất hữu ích khi viết ưu nhược điểm của SNS, thành phố, công việc.'],['〜に対して','N + に対して','Đối với; hướng hành động/cảm xúc/ý kiến vào đối tượng.','Dùng khi viết thái độ của xã hội đối với vấn đề nào đó.'],['〜ことによって','Vる + ことによって','Bằng việc; nhờ việc làm gì mà có kết quả.','Dùng khi nêu giải pháp và tác dụng cụ thể.'],['〜わけではない','普通形 + わけではない','Không hẳn là/không có nghĩa là.','Dùng để tránh khẳng định tuyệt đối, giúp bài viết tự nhiên hơn.']],
+ N2:[['〜にもかかわらず','普通形/N + にもかかわらず','Mặc dù nhưng; kết quả trái với dự đoán.','Dùng trong văn viết khi nêu nghịch lý xã hội hoặc mâu thuẫn giữa lợi ích và vấn đề.'],['〜を踏まえて','N + を踏まえて','Dựa trên/căn cứ vào.','Dùng khi đưa đề xuất sau khi đã nhìn vào số liệu, hiện trạng, ý kiến.'],['〜に伴って','N/Vる + に伴って','Cùng với/kéo theo một thay đổi khác.','Dùng để mô tả xu hướng: già hóa, công nghệ phát triển, toàn cầu hóa.'],['〜ざるを得ない','Vない bỏ ない + ざるを得ない','Buộc phải/không thể không.','Dùng khi hoàn cảnh khiến chủ thể không còn lựa chọn khác.'],['〜をめぐって','N + をめぐって','Xoay quanh vấn đề.','Dùng khi có nhiều tranh luận, ý kiến hoặc xung đột về một chủ đề.'],['〜に基づいて','N + に基づいて','Dựa trên nền tảng/căn cứ.','Dùng trong văn viết để nói quyết định, chính sách hoặc lập luận có cơ sở.'],['〜にすぎない','N/普通形 + にすぎない','Chỉ là; nhấn mạnh mức độ thấp/giới hạn.','Dùng để phản biện khi một giải pháp hoặc kết quả chưa đủ quan trọng.']],
+ N1:[['〜がゆえに','普通形/N + がゆえに','Chính vì/do; sắc thái trang trọng, văn viết.','Dùng khi phân tích nguyên nhân sâu xa trong triết học, xã hội, văn học.'],['〜にほかならない','N + にほかならない','Chính là/không gì khác ngoài.','Dùng để kết luận mạnh mẽ, khẳng định bản chất của sự việc.'],['〜ならではの','N + ならではの + N','Đặc trưng chỉ riêng N mới có.','Dùng khi bàn về văn hóa, nghệ thuật, ngôn ngữ, bản sắc.'],['〜とも〜とも言えない','A とも B とも言えない','Không thể nói hẳn là A hay B.','Dùng để diễn đạt nhận định tinh tế, tránh nhị nguyên đơn giản.'],['〜に至っては','N + に至っては','Thậm chí đến mức; nêu trường hợp cực đoan.','Dùng trong phân tích khi muốn đưa ví dụ nổi bật hoặc nghiêm trọng.'],['〜ずにはおかない','Vない bỏ ない + ずにはおかない','Nhất định sẽ/không thể không gây ra.','Dùng trong văn viết để nói tác động mạnh mẽ của sự kiện/tác phẩm.'],['〜いかんによらず','N + いかんによらず','Bất kể như thế nào.','Dùng trong văn chính luận, luật lệ, nguyên tắc, lập luận khách quan.']]
+};
+function lvExampleJP(level, jp, name, type, i){
+  const jt=lvJPTopic(name);
+  const vnTopic=name==='Chủ đề luyện viết 100'?'chủ đề này':name;
+  if(type==='vocab'){
+    const templates={
+      N5:[`${jp}について短く話します。 (${vnTopic}: Tôi sẽ nói ngắn về chủ đề này.)`, `毎日、${jp}を使って文を書きます。 (Mỗi ngày tôi dùng từ này để viết câu.)`],
+      N4:[`${jp}は私の生活と関係があります。 (${jp} có liên quan đến cuộc sống của tôi.)`, `${jt}について書くとき、${jp}は便利な言葉です。 (Khi viết về ${vnTopic}, từ này rất hữu ích.)`],
+      N3:[`${jt}を考えるうえで、${jp}は重要なキーワードです。 (Khi suy nghĩ về ${vnTopic}, đây là từ khóa quan trọng.)`, `${jp}の意味を理解すると、意見をより具体的に書けます。 (Hiểu từ này giúp viết ý kiến cụ thể hơn.)`],
+      N2:[`${jt}を論じる際、${jp}という観点は欠かせません。 (Khi bàn về ${vnTopic}, góc nhìn này rất cần thiết.)`, `${jp}を用いることで、文章の説得力が高まります。 (Dùng từ này giúp bài viết thuyết phục hơn.)`],
+      N1:[`${jt}の本質を問うなら、${jp}という概念を避けて通れません。 (Khi hỏi về bản chất của ${vnTopic}, khó tránh khái niệm này.)`, `${jp}は抽象的な議論を支える語彙です。 (Đây là từ vựng nâng đỡ lập luận trừu tượng.)`]
+    };
+    return templates[level] || templates.N3;
+  }
+  return [];
+}
+function lvBuildVocab(level,name,idx){
+  const pool=LV_EXTRA_VOCAB[level] || LV_EXTRA_VOCAB.N3;
+  const topicJP=lvJPTopic(name);
+  const first=[topicJP, topicJP, `chủ đề: ${name}`];
+  const chosen=[first,...pool.slice(idx%pool.length),...pool.slice(0,idx%pool.length)].slice(0,20);
+  return chosen.map((x,i)=>{
+    const jp=x[0], r=x[1], vn=x[2];
+    return {
+      jp,r,vn,
+      pos:i%3===0?'名詞':(i%3===1?'動詞/表現':'形容詞/表現'),
+      collocation:`${jp}について書く・${jp}を大切にする・${jp}に関係がある`,
+      context:`JLPT ${level}（${lvVNLevelName(level)}）で「${name}」について書くときに使いやすい語彙です。日常説明から意見文まで、主語・理由・具体例を補う場面で使えます。`,
+      examples:lvExampleJP(level,jp,name,'vocab',i),
+      nuance:`単語だけで覚えるより、「${jp}について」「${jp}を〜する」の形で覚えると作文に入れやすくなります。`
+    };
+  });
+}
+function lvBuildGrammar(level,name,idx){
+  const pool=LV_GRAMMAR_POOL[level] || LV_GRAMMAR_POOL.N3;
+  return pool.slice(0,7).map((g,i)=>({
+    pattern:g[0], structure:g[1], meaning:g[2], context:g[3],
+    examples:[
+      `${lvJPTopic(name)}について書くとき、この表現を使うと自然です。 (Khi viết về ${name}, dùng mẫu này sẽ tự nhiên.)`,
+      `例：${lvJPTopic(name)}は大切だと思います。 (Ví dụ: Tôi nghĩ ${name} là quan trọng.)`
+    ],
+    note:`Mẫu này phù hợp JLPT ${level}. Khi luyện viết, nên dùng để nối ý, đưa lý do, nêu ví dụ hoặc làm câu văn rõ logic hơn.`
+  }));
+}
+function lvEnrichAllTopics(){
+  Object.keys(TOPICS).forEach(level=>{
+    TOPICS[level]=(TOPICS[level]||[]).map((t,idx)=>({
+      ...t,
+      jpName:lvJPTopic(t.name),
+      category:lvCategoryForTopic(t.name),
+      prompts:lvPromptSet(level,t.name),
+      vocab:lvBuildVocab(level,t.name,idx),
+      grammar:lvBuildGrammar(level,t.name,idx)
+    }));
+  });
+}
+lvEnrichAllTopics();
+
+function renderLevels(){
+  const grid=document.getElementById('level-grid'); if(!grid) return;
+  grid.innerHTML=LEVELS.map(l=>`<div class="level-card level-card-clean" id="lv-${l.id}" onclick="selectLevel('${l.id}')"><div class="level-jp" style="color:${l.color}">${l.name}</div><div class="level-sub">${l.sub}</div><div class="level-mini">100 chủ đề · 20 từ · 7 mẫu</div></div>`).join('');
+}
+function renderTopics(){
+  const all=TOPICS[state.level]||[];
+  const q=(document.getElementById('topic-search')?.value||'').toLowerCase().trim();
+  const filter=document.getElementById('topic-filter')?.value||'all';
+  let topics=all.map((t,i)=>({...t,_idx:i})).filter(t=>{
+    const matchQ=!q || `${t.name} ${t.jpName}`.toLowerCase().includes(q);
+    const matchF=filter==='all' || t.category===filter;
+    return matchQ && matchF;
+  });
+  const badge=document.getElementById('topic-level-badge'); if(badge) badge.textContent=`${state.level} · ${topics.length}/${all.length} chủ đề`;
+  const grid=document.getElementById('topic-grid'); if(!grid) return;
+  grid.innerHTML=topics.map(t=>`<div class="topic-card" onclick="selectTopic(${t._idx})"><div class="topic-emoji">${t.emoji}</div><div class="topic-name"><span class="topic-jp-name">${escapeHTML(t.jpName||'')}</span><span>${escapeHTML(t.name)}</span></div><div class="topic-count">3 đề · 20 từ · 7 mẫu</div></div>`).join('') || `<div class="empty-state">Không thấy chủ đề phù hợp. Thử từ khóa khác nhé.</div>`;
+}
+function renderPrompt(){
+  const p=state.topic.prompts[state.promptIdx%state.topic.prompts.length];
+  const title=state.topic.jpName || lvJPTopic(state.topic.name);
+  document.getElementById('writing-prompt').innerHTML=`<div class="prompt-label">✏ テーマ：${escapeHTML(title)} · 課題 ${state.promptIdx+1}/${state.topic.prompts.length}</div><div class="prompt-text">${escapeHTML(p.jp)}</div><div class="prompt-switcher">${state.topic.prompts.map((_,i)=>`<button class="prompt-pill ${i===state.promptIdx?'active':''}" onclick="choosePrompt(${i})">課題 ${i+1}</button>`).join('')}</div>`;
+}
+function lvOpenDetail(type,item,topicName){
+  const isV=type==='vocab';
+  const html=isV?`
+    <div class="modal-kicker">📖 Từ vựng · ${escapeHTML(state.level||'JLPT')}</div>
+    <h2 class="modal-title-jp">${escapeHTML(item.jp)}</h2>
+    <div class="modal-reading">${escapeHTML(item.r||'')}</div>
+    <div class="modal-meaning">${escapeHTML(item.vn||'')}</div>
+    <div class="modal-grid">
+      <section><h4>Loại từ / sắc thái</h4><p>${escapeHTML(item.pos||'表現')}</p><p>${escapeHTML(item.nuance||'')}</p></section>
+      <section><h4>Bối cảnh sử dụng</h4><p>${escapeHTML(item.context||'')}</p></section>
+      <section class="wide"><h4>Collocation hay gặp</h4><div class="modal-chips">${String(item.collocation||'').split('・').map(x=>`<span>${escapeHTML(x)}</span>`).join('')}</div></section>
+      <section class="wide"><h4>Ví dụ thực tế</h4><ol class="modal-examples">${(item.examples||[]).map(e=>`<li>${escapeHTML(e)}</li>`).join('')}</ol></section>
+    </div>`:`
+    <div class="modal-kicker">🔧 Ngữ pháp · ${escapeHTML(state.level||'JLPT')}</div>
+    <h2 class="modal-title-jp">${escapeHTML(item.pattern)}</h2>
+    <div class="modal-meaning">${escapeHTML(item.meaning||'')}</div>
+    <div class="modal-grid">
+      <section><h4>Cấu trúc</h4><p class="structure-line">${escapeHTML(item.structure||'')}</p></section>
+      <section><h4>Bối cảnh dùng</h4><p>${escapeHTML(item.context||'')}</p></section>
+      <section class="wide"><h4>Ý nghĩa chi tiết</h4><p>${escapeHTML(item.note||item.meaning||'')}</p></section>
+      <section class="wide"><h4>Ví dụ có dịch tiếng Việt</h4><ol class="modal-examples">${(item.examples||[]).map(e=>`<li>${escapeHTML(e)}</li>`).join('')}</ol></section>
+    </div>`;
+  const modal=document.getElementById('learning-modal'), content=document.getElementById('learning-modal-content');
+  if(content) content.innerHTML=html;
+  modal?.classList.remove('step-hidden');
+}
+function closeLearningModal(e){ if(e && e.target && e.target.id!=='learning-modal') return; document.getElementById('learning-modal')?.classList.add('step-hidden'); }
+function patchVocabDetail(v){ return `<div class="expand-detail"><div><b>Cách đọc:</b> ${escapeHTML(v.r||'')}</div><div><b>Nghĩa:</b> ${escapeHTML(v.vn||'')}</div><div><b>Collocation:</b> ${escapeHTML(v.collocation||'')}</div><div><b>Bối cảnh:</b> ${escapeHTML(v.context||'')}</div><button class="detail-button" onclick="event.stopPropagation(); lvOpenDetail('vocab', ${escapeHTML(JSON.stringify(v))})">Xem giải thích đẹp hơn</button></div>`; }
+function patchGrammarDetail(g){ return `<div class="expand-detail grammar-expand"><div><b>Cấu trúc:</b> ${escapeHTML(g.structure||'')}</div><div><b>Nghĩa:</b> ${escapeHTML(g.meaning||'')}</div><div><b>Bối cảnh:</b> ${escapeHTML(g.context||'')}</div><button class="detail-button" onclick="event.stopPropagation(); lvOpenDetail('grammar', ${escapeHTML(JSON.stringify(g))})">Xem giải thích đẹp hơn</button></div>`; }
+function renderSidebar(){
+  const t=state.topic;
+  document.getElementById('sidebar-topic').textContent=`${t.emoji} ${t.jpName||lvJPTopic(t.name)}`;
+  document.getElementById('sidebar-level').textContent=`${state.level} · ${t.name}`;
+  document.getElementById('vocab-list').innerHTML=t.vocab.map((v,idx)=>`<div class="vocab-item expandable-item" onclick="toggleLearningItem(this)"><div class="learning-row"><div><div class="vocab-jp">${escapeHTML(v.jp)}</div><div class="vocab-reading">${escapeHTML(v.r)}</div></div><div class="vocab-vn">${escapeHTML(v.vn)}</div></div><div class="expand-detail"><div><b>Collocation:</b> ${escapeHTML(v.collocation||'')}</div><div><b>Bối cảnh:</b> ${escapeHTML(v.context||'')}</div><div class="mini-examples"><b>Ví dụ:</b><br>${(v.examples||[]).map((e,i)=>`${i+1}. ${escapeHTML(e)}`).join('<br>')}</div><button class="detail-button" onclick="event.stopPropagation(); lvOpenDetail('vocab', state.topic.vocab[${idx}])">Mở popup chi tiết</button></div></div>`).join('');
+  document.getElementById('vocab-count').textContent=t.vocab.length;
+  document.getElementById('grammar-list').innerHTML=t.grammar.map((g,idx)=>`<div class="grammar-item expandable-item" onclick="toggleLearningItem(this)"><div class="grammar-pattern">${escapeHTML(g.pattern)}</div><div class="grammar-meaning">${escapeHTML(g.meaning)}</div><div class="expand-detail grammar-expand"><div><b>Cấu trúc:</b> ${escapeHTML(g.structure)}</div><div><b>Bối cảnh:</b> ${escapeHTML(g.context)}</div><div class="mini-examples"><b>Ví dụ:</b><br>${(g.examples||[]).map((e,i)=>`${i+1}. ${escapeHTML(e)}`).join('<br>')}</div><button class="detail-button" onclick="event.stopPropagation(); lvOpenDetail('grammar', state.topic.grammar[${idx}])">Mở popup chi tiết</button></div></div>`).join('');
+  document.getElementById('grammar-count').textContent=t.grammar.length;
+}
+function getSuggestions(){
+  const input=document.getElementById('free-topic-input').value.trim();
+  if(!input) return document.getElementById('free-topic-input').focus();
+  state.freeTopic=input;
+  state.topic={...patchBuildTopic(state.level,input,FREE_TOPIC_TAGS_20.indexOf(input)+11), jpName:lvJPTopic(input), category:lvCategoryForTopic(input), prompts:lvPromptSet(state.level,input), vocab:lvBuildVocab(state.level,input,7), grammar:lvBuildGrammar(state.level,input,7), emoji:'✏️'};
+  state.promptIdx=0; renderSidebar(); renderPrompt(); showStep('step-writing'); scrollToStep('step-writing'); clearFeedback();
+}
+function goPractice(){
+  document.getElementById('library-section')?.classList.add('step-hidden');
+  const target = state.level ? 'step-mode' : 'step-level';
+  if(state.level) showStep('step-mode');
+  document.getElementById(target)?.scrollIntoView({behavior:'smooth',block:'start'});
+  setActiveNav('practice');
+}
+function setActiveNav(kind){
+  document.querySelectorAll('.nav-link').forEach(a=>a.classList.remove('active'));
+  const labels={home:'Trang chủ',practice:'Luyện viết',vocab:'Từ vựng',grammar:'Ngữ pháp'};
+  document.querySelectorAll('.nav-link').forEach(a=>{ if(a.textContent.trim()===labels[kind]) a.classList.add('active'); });
+}
+function goHome(){
+  document.getElementById('library-section')?.classList.add('step-hidden');
+  ['step-mode','step-topics','step-free-input','step-drill','step-writing'].forEach(id=>document.getElementById(id)?.classList.add('step-hidden'));
+  document.getElementById('hero-section')?.scrollIntoView({behavior:'smooth',block:'start'});
+  setActiveNav('home');
+}
+function setUILanguage(lang,btn){
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  btn?.classList.add('active');
+  const label={en:'English UI selected',zh:'已选择中文界面',ja:'日本語UIを選択しました',vi:'Đã chọn giao diện tiếng Việt'}[lang] || 'Language selected';
+  const el=document.querySelector('.hero-badge'); if(el) el.textContent=label;
+}
+
+const libraryState={type:'vocab',level:'N5',topicIdx:null};
+function openLibrary(type='vocab'){
+  libraryState.type=type;
+  document.getElementById('library-section')?.classList.remove('step-hidden');
+  ['step-mode','step-topics','step-free-input','step-drill','step-writing'].forEach(id=>document.getElementById(id)?.classList.add('step-hidden'));
+  renderLibraryLevels(); renderLibraryTopics();
+  document.getElementById('library-section')?.scrollIntoView({behavior:'smooth',block:'start'});
+  setActiveNav(type);
+}
+function renderLibraryLevels(){
+  const wrap=document.getElementById('library-levels'); if(!wrap) return;
+  wrap.innerHTML=LEVELS.map(l=>`<button class="library-level ${libraryState.level===l.id?'active':''}" onclick="libraryState.level='${l.id}'; libraryState.topicIdx=null; renderLibraryLevels(); renderLibraryTopics();">${l.name}<span>${l.sub}</span></button>`).join('');
+  document.getElementById('library-tab-vocab')?.classList.toggle('active',libraryState.type==='vocab');
+  document.getElementById('library-tab-grammar')?.classList.toggle('active',libraryState.type==='grammar');
+  const title=document.getElementById('library-title'), desc=document.getElementById('library-desc');
+  if(title) title.textContent=libraryState.type==='vocab'?'Từ vựng theo cấp độ':'Ngữ pháp theo cấp độ';
+  if(desc) desc.textContent=libraryState.type==='vocab'?'Mỗi cấp có 100 chủ đề, mỗi chủ đề 20 từ với collocation, bối cảnh và ví dụ.':'Mỗi cấp có 100 chủ đề, mỗi chủ đề 7 mẫu ngữ pháp với cấu trúc, nghĩa và ví dụ.';
+}
+function renderLibraryTopics(){
+  const q=(document.getElementById('library-search')?.value||'').toLowerCase().trim();
+  const sort=document.getElementById('library-sort')?.value||'default';
+  let topics=(TOPICS[libraryState.level]||[]).map((t,i)=>({...t,_idx:i})).filter(t=>!q || `${t.name} ${t.jpName} ${t.vocab.map(v=>v.jp+v.vn).join(' ')} ${t.grammar.map(g=>g.pattern+g.meaning).join(' ')}`.toLowerCase().includes(q));
+  if(sort==='az') topics.sort((a,b)=>a.name.localeCompare(b.name));
+  if(sort==='za') topics.sort((a,b)=>b.name.localeCompare(a.name));
+  const grid=document.getElementById('library-topic-grid'); if(!grid) return;
+  grid.innerHTML=topics.map(t=>`<button class="library-topic ${libraryState.topicIdx===t._idx?'active':''}" onclick="libraryState.topicIdx=${t._idx}; renderLibraryTopics(); renderLibraryItems();"><span>${t.emoji}</span><b>${escapeHTML(t.jpName)}</b><small>${escapeHTML(t.name)}</small></button>`).join('');
+  if(libraryState.topicIdx==null && topics[0]) libraryState.topicIdx=topics[0]._idx;
+  renderLibraryItems();
+}
+function renderLibraryItems(){
+  const box=document.getElementById('library-items'); if(!box) return;
+  const topic=(TOPICS[libraryState.level]||[])[libraryState.topicIdx];
+  if(!topic){ box.innerHTML='<div class="empty-state">Chọn một chủ đề để xem nội dung.</div>'; return; }
+  const items=libraryState.type==='vocab'?topic.vocab:topic.grammar;
+  box.innerHTML=`<div class="library-items-head"><div><h3>${topic.emoji} ${escapeHTML(topic.jpName)}</h3><p>${escapeHTML(topic.name)} · ${libraryState.level} · ${items.length} mục</p></div></div><div class="library-card-grid">${items.map((it,i)=>libraryState.type==='vocab'?`<button class="library-item-card" onclick="lvOpenDetail('vocab', TOPICS['${libraryState.level}'][${libraryState.topicIdx}].vocab[${i}])"><b>${escapeHTML(it.jp)}</b><span>${escapeHTML(it.r)}</span><small>${escapeHTML(it.vn)}</small></button>`:`<button class="library-item-card grammar" onclick="lvOpenDetail('grammar', TOPICS['${libraryState.level}'][${libraryState.topicIdx}].grammar[${i}])"><b>${escapeHTML(it.pattern)}</b><small>${escapeHTML(it.meaning)}</small></button>`).join('')}</div>`;
+}
+
+function buildDrillSentence(level, topic, n){
+  const jpTopic=topic.jpName||lvJPTopic(topic.name);
+  const g=topic.grammar[n%topic.grammar.length];
+  const patterns={
+    N5:[[`Tôi viết về ${topic.name}.`,`私は${jpTopic}について書きます。`],[`Tôi thích ${topic.name}.`,`私は${jpTopic}が好きです。`],[`${topic.name} rất quan trọng.`,`${jpTopic}は大切です。`]],
+    N4:[[`Tôi đã từng viết về ${topic.name}.`,`私は${jpTopic}について書いたことがあります。`],[`Tôi học từ vựng để viết về ${topic.name}.`,`${jpTopic}について書くために語彙を勉強します。`],[`Tôi nghĩ ${topic.name} rất thú vị.`,`${jpTopic}はとても面白いと思います。`]],
+    N3:[[`Không chỉ ${topic.name} mà ví dụ cụ thể cũng quan trọng.`,`${jpTopic}だけでなく、具体例も大切です。`],[`Nhờ hiểu ${topic.name}, bài viết trở nên rõ hơn.`,`${jpTopic}を理解することによって、文章がより明確になります。`],[`Chúng ta nên suy nghĩ về ${topic.name}.`,`${jpTopic}について考えるべきです。`]],
+    N2:[[`Dựa trên hiện trạng của ${topic.name}, cần đề xuất giải pháp.`,`${jpTopic}の現状を踏まえて、解決策を提案する必要があります。`],[`Cùng với sự thay đổi của ${topic.name}, xã hội cũng thay đổi.`,`${jpTopic}の変化に伴って、社会も変わっています。`],[`Mặc dù ${topic.name} có lợi ích, cũng còn vấn đề.`,`${jpTopic}には利点があるにもかかわらず、課題も残っています。`]],
+    N1:[[`Chính vì ${topic.name} phức tạp nên cần suy ngẫm sâu.`,`${jpTopic}が複雑であるがゆえに、深く考察する必要があります。`],[`${topic.name} không gì khác ngoài một vấn đề phản ánh xã hội hiện đại.`,`${jpTopic}は現代社会を映し出す問題にほかなりません。`],[`Không thể nói ${topic.name} chỉ là tốt hay xấu.`,`${jpTopic}は良いとも悪いとも言えません。`]]
+  };
+  const pair=(patterns[level]||patterns.N3)[n%3];
+  return n%2===0?{direction:'vn-jp',source:pair[0],answer:pair[1],hint:`Ngữ pháp: ${g.pattern}｜Nghĩa: ${g.meaning}`}:{direction:'jp-vn',source:pair[1],answer:pair[0],hint:`文法: ${g.pattern}｜${g.meaning}`};
+}
+function renderDrillTopics(){
+  const grid=document.getElementById('drill-topic-grid'); if(!grid) return;
+  const q=(document.getElementById('drill-topic-search')?.value||'').toLowerCase().trim();
+  const topics=(TOPICS[state.level]||[]).map((t,i)=>({...t,_idx:i})).filter(t=>!q || `${t.name} ${t.jpName}`.toLowerCase().includes(q));
+  grid.innerHTML=topics.map(t=>`<button class="drill-topic-chip ${state.drill?.topicIdx===t._idx?'active':''}" onclick="selectDrillTopic(${t._idx})"><span>${t.emoji}</span><b>${escapeHTML(t.jpName)}</b><small>40 câu</small></button>`).join('');
+}
+function selectDrillTopic(idx){
+  const topic=(TOPICS[state.level]||[])[idx]; if(!topic) return;
+  state.drill={topicIdx:idx,idx:0,correct:0,unlockedNext:false,items:Array.from({length:40},(_,i)=>buildDrillSentence(state.level,topic,i))};
+  renderDrillTopics(); renderDrill();
+}
+function initDrill(){
+  const first=0;
+  state.drill={topicIdx:first,idx:0,correct:0,unlockedNext:false,items:Array.from({length:40},(_,i)=>buildDrillSentence(state.level,TOPICS[state.level][first],i))};
+  renderDrillTopics(); renderDrill();
+}
+function renderDrill(){
+  const d=state.drill,item=d.items[d.idx], topic=TOPICS[state.level][d.topicIdx];
+  document.getElementById('drill-level-badge').textContent=`${state.level} · ${topic.jpName}`;
+  document.getElementById('drill-progress-text').textContent=`Câu ${d.idx+1}/${d.items.length}`;
+  document.getElementById('drill-streak').textContent=d.correct?`Đúng ${d.correct}`:'';
+  document.getElementById('drill-progress-fill').style.width=`${((d.idx+1)/d.items.length)*100}%`;
+  document.getElementById('drill-direction').textContent=item.direction==='vn-jp'?'🇻🇳 → 🇯🇵 Dịch sang tiếng Nhật':'🇯🇵 → 🇻🇳 Dịch sang tiếng Việt';
+  document.getElementById('drill-sentence').textContent=item.source;
+  document.getElementById('drill-vocab-hint').textContent=item.hint;
+  document.getElementById('drill-answer').value=''; document.getElementById('drill-char-count').textContent='0 ký tự'; document.getElementById('drill-feedback').innerHTML=''; document.getElementById('drill-next-btn').style.display='none'; d.unlockedNext=false;
+}
+document.addEventListener('DOMContentLoaded',()=>{ renderLevels(); renderFreeTags(); });
 
 // ============================================================
-// PATCH 2026-05 — 100 chủ đề/cấp, expand từ vựng/ngữ pháp, drill riêng
+// PATCH 2026-05-C — Ensure 100 topics/level when starting from the original upload
 // ============================================================
-const BUILTIN_TOPIC_NAMES_100 = {
-  "N5": [
-    "Tự giới thiệu",
-    "Gia đình",
-    "Bạn bè",
-    "Trường học",
-    "Lớp học",
-    "Giáo viên",
-    "Môn học yêu thích",
-    "Một ngày của tôi",
-    "Buổi sáng",
-    "Buổi tối",
-    "Cuối tuần",
-    "Sở thích",
-    "Âm nhạc",
-    "Phim ảnh",
-    "Anime",
-    "Manga",
-    "Thể thao",
-    "Bóng đá",
-    "Mua sắm",
-    "Quần áo",
-    "Thức ăn",
-    "Đồ uống",
-    "Bữa sáng",
-    "Bữa trưa",
-    "Bữa tối",
-    "Nhà hàng",
-    "Quán cà phê",
-    "Nấu ăn đơn giản",
-    "Trái cây",
-    "Rau củ",
-    "Thời tiết",
-    "Mùa xuân",
-    "Mùa hè",
-    "Mùa thu",
-    "Mùa đông",
-    "Sinh nhật",
-    "Ngày nghỉ",
-    "Kỳ nghỉ hè",
-    "Du lịch gần nhà",
-    "Ga tàu",
-    "Xe buýt",
-    "Đi bộ",
-    "Xe đạp",
-    "Nhà của tôi",
-    "Phòng của tôi",
-    "Thành phố của tôi",
-    "Công viên",
-    "Siêu thị",
-    "Hiệu sách",
-    "Bệnh viện",
-    "Ngân hàng",
-    "Bưu điện",
-    "Khách sạn",
-    "Động vật",
-    "Thú cưng",
-    "Mèo",
-    "Chó",
-    "Hoa",
-    "Màu sắc",
-    "Số đếm",
-    "Thời gian",
-    "Lịch trình",
-    "Đi học",
-    "Đi làm",
-    "Đi chơi",
-    "Gặp bạn",
-    "Gọi điện",
-    "Nhắn tin",
-    "Ảnh chụp",
-    "Quà tặng",
-    "Tiền bạc",
-    "Sức khỏe",
-    "Đau ốm",
-    "Tập thể dục nhẹ",
-    "Ngủ",
-    "Dậy sớm",
-    "Dọn phòng",
-    "Giặt đồ",
-    "Tắm rửa",
-    "Đánh răng",
-    "Đọc sách",
-    "Viết nhật ký",
-    "Học tiếng Nhật",
-    "Kanji yêu thích",
-    "Hiragana và Katakana",
-    "Cửa hàng tiện lợi",
-    "Món Nhật yêu thích",
-    "Việt Nam",
-    "Nhật Bản",
-    "Ngôn ngữ",
-    "Ước mơ nhỏ",
-    "Người tôi thích",
-    "Việc tôi ghét",
-    "Kỷ niệm vui",
-    "Ngày mưa",
-    "Ngày nắng",
-    "Đi biển",
-    "Đi núi",
-    "Lễ hội",
-    "Tết"
-  ],
-  "N4": [
-    "Du lịch",
-    "Công việc",
-    "Sức khỏe",
-    "Phim và âm nhạc",
-    "Mua sắm",
-    "Thói quen hằng ngày",
-    "Kế hoạch cuối tuần",
-    "Kỳ nghỉ đáng nhớ",
-    "Kinh nghiệm học tiếng Nhật",
-    "Mục tiêu năm nay",
-    "Việc làm thêm",
-    "Công ty mơ ước",
-    "Đồng nghiệp",
-    "Sếp tốt",
-    "Phỏng vấn xin việc",
-    "Email đơn giản",
-    "Cuộc hẹn",
-    "Xin lỗi và cảm ơn",
-    "Giúp đỡ người khác",
-    "Sống một mình",
-    "Thuê nhà",
-    "Chuyển nhà",
-    "Nội trợ",
-    "Tiết kiệm tiền",
-    "Mua hàng online",
-    "So sánh sản phẩm",
-    "Quà lưu niệm",
-    "Nhà hàng yêu thích",
-    "Công thức món ăn",
-    "Ăn uống lành mạnh",
-    "Tập thể dục",
-    "Bị cảm",
-    "Đi khám bệnh",
-    "Giấc ngủ",
-    "Stress nhẹ",
-    "Đi tàu điện",
-    "Lạc đường",
-    "Hỏi đường",
-    "Đặt phòng khách sạn",
-    "Sân bay",
-    "Kế hoạch du lịch Nhật",
-    "Lễ hội Nhật",
-    "Văn hóa tặng quà",
-    "Phong tục chào hỏi",
-    "Gia đình hiện đại",
-    "Bạn thân",
-    "Hàng xóm",
-    "Nuôi thú cưng",
-    "Mạng xã hội",
-    "Điện thoại thông minh",
-    "Ứng dụng hữu ích",
-    "Học online",
-    "Xem video",
-    "Đọc tin tức",
-    "Sở thích mới",
-    "Học nhạc cụ",
-    "Chơi thể thao",
-    "Leo núi",
-    "Cắm trại",
-    "Đi biển",
-    "Chụp ảnh",
-    "Viết nhật ký",
-    "Sách yêu thích",
-    "Phim gần đây",
-    "Bài hát yêu thích",
-    "Anime đề xuất",
-    "Manga đề xuất",
-    "Thành phố đáng sống",
-    "Nông thôn",
-    "Giao thông công cộng",
-    "Ô nhiễm nhẹ",
-    "Tái chế",
-    "Tiết kiệm điện",
-    "Thời tiết xấu",
-    "Mùa yêu thích",
-    "Sự kiện ở trường",
-    "Kỳ thi",
-    "Học bổng",
-    "Câu lạc bộ",
-    "Giáo viên tốt",
-    "Môn khó",
-    "Tương lai",
-    "Ước mơ nghề nghiệp",
-    "Người truyền cảm hứng",
-    "Kỷ niệm thời thơ ấu",
-    "Lỗi từng mắc",
-    "Điều muốn thử",
-    "Thói quen muốn bỏ",
-    "Thói quen tốt",
-    "Ngày bận rộn",
-    "Ngày thư giãn",
-    "Tin nhắn cho bạn",
-    "Mời bạn đi chơi",
-    "Từ chối lịch hẹn",
-    "Nhờ vả",
-    "Cảm nhận về Nhật Bản",
-    "So sánh Việt Nam và Nhật",
-    "Mục tiêu JLPT",
-    "Kế hoạch học tập",
-    "Chủ đề luyện viết 100"
-  ],
-  "N3": [
-    "Môi trường",
-    "Giáo dục",
-    "Văn hóa Nhật",
-    "Công nghệ và mạng xã hội",
-    "Cuộc sống đô thị",
-    "Làm việc nhóm",
-    "Kỹ năng giao tiếp",
-    "Quản lý thời gian",
-    "Áp lực học tập",
-    "Áp lực công việc",
-    "Cân bằng cuộc sống",
-    "Lựa chọn nghề nghiệp",
-    "Chuyển việc",
-    "Làm việc từ xa",
-    "Học ngoại ngữ",
-    "Tự học",
-    "Du học Nhật Bản",
-    "Học bổng",
-    "Thi cử",
-    "Giáo viên lý tưởng",
-    "Trường học tương lai",
-    "Đọc sách",
-    "Thói quen đọc tin",
-    "Tin giả",
-    "Bảo mật thông tin",
-    "Phụ thuộc điện thoại",
-    "Mua sắm online",
-    "Thanh toán điện tử",
-    "Dịch vụ khách hàng",
-    "Văn hóa công ty",
-    "Quan hệ cấp trên cấp dưới",
-    "Bạn bè sau khi trưởng thành",
-    "Gia đình và sự nghiệp",
-    "Kết hôn muộn",
-    "Nuôi con",
-    "Sức khỏe tinh thần",
-    "Tập thể dục và kỷ luật",
-    "Ăn uống lành mạnh",
-    "Ngủ đủ giấc",
-    "Du lịch bền vững",
-    "Du lịch một mình",
-    "Kỷ niệm du lịch",
-    "Văn hóa lễ hội",
-    "Phép lịch sự nơi công cộng",
-    "Tàu điện Nhật Bản",
-    "Đúng giờ",
-    "Làm thêm của sinh viên",
-    "Tình nguyện",
-    "Hoạt động cộng đồng",
-    "Bảo vệ động vật",
-    "Tái chế rác",
-    "Biến đổi khí hậu",
-    "Tiết kiệm năng lượng",
-    "Không gian xanh",
-    "Giao thông đô thị",
-    "Kẹt xe",
-    "Nhà ở đô thị",
-    "Sống ở nông thôn",
-    "Di cư lên thành phố",
-    "Ẩm thực truyền thống",
-    "Thức ăn nhanh",
-    "Cà phê và làm việc",
-    "Giải trí cuối tuần",
-    "Anime và văn hóa đại chúng",
-    "Âm nhạc chữa lành",
-    "Phim tài liệu",
-    "Thể thao và xã hội",
-    "Olympic",
-    "Mục tiêu dài hạn",
-    "Thành công là gì",
-    "Thất bại và bài học",
-    "Sự tự tin",
-    "Động lực cá nhân",
-    "Kỷ luật bản thân",
-    "Tiêu dùng thông minh",
-    "Tiết kiệm và đầu tư nhỏ",
-    "Khoảng cách thế hệ",
-    "Vai trò của phụ nữ",
-    "Bình đẳng giới",
-    "Người cao tuổi",
-    "Xã hội già hóa",
-    "Robot chăm sóc",
-    "AI trong đời sống",
-    "Tương lai công việc",
-    "Sáng tạo nội dung",
-    "Học bằng video",
-    "Làm việc quốc tế",
-    "Khác biệt văn hóa",
-    "Sốc văn hóa",
-    "Ngôn ngữ và tư duy",
-    "Dịch thuật",
-    "Viết blog",
-    "Thuyết trình",
-    "Tranh luận",
-    "Ý kiến cá nhân",
-    "Tin tức xã hội",
-    "Vấn đề địa phương",
-    "Thành phố lý tưởng",
-    "Cuộc sống tối giản",
-    "Hạnh phúc hằng ngày"
-  ],
-  "N2": [
-    "Kinh tế xã hội",
-    "Khoa học và tương lai",
-    "Quan hệ con người",
-    "Toàn cầu hóa",
-    "Già hóa dân số",
-    "Thiếu lao động",
-    "Bất bình đẳng kinh tế",
-    "Phúc lợi xã hội",
-    "Chính sách giáo dục",
-    "Cải cách thi cử",
-    "Đại học và việc làm",
-    "Kỹ năng thế kỷ 21",
-    "Làm việc từ xa",
-    "Năng suất lao động",
-    "Văn hóa làm thêm giờ",
-    "Cân bằng công việc cuộc sống",
-    "Lãnh đạo",
-    "Đạo đức nghề nghiệp",
-    "Quản trị rủi ro",
-    "Khởi nghiệp",
-    "Đổi mới sáng tạo",
-    "AI và việc làm",
-    "Tự động hóa",
-    "Dữ liệu cá nhân",
-    "Quyền riêng tư",
-    "An ninh mạng",
-    "Tin giả và truyền thông",
-    "Tự do ngôn luận online",
-    "Nền tảng mạng xã hội",
-    "Nghiện kỹ thuật số",
-    "Y tế từ xa",
-    "Công nghệ y sinh",
-    "Đạo đức trong y học",
-    "Biến đổi khí hậu",
-    "Năng lượng tái tạo",
-    "Chính sách môi trường",
-    "Kinh tế tuần hoàn",
-    "Tiêu dùng bền vững",
-    "Trách nhiệm doanh nghiệp",
-    "Du lịch quá tải",
-    "Bảo tồn văn hóa",
-    "Văn hóa truyền thống",
-    "Văn hóa đại chúng",
-    "Sức mạnh mềm",
-    "Giao lưu quốc tế",
-    "Di cư lao động",
-    "Đa văn hóa",
-    "Rào cản ngôn ngữ",
-    "Giáo dục ngoại ngữ",
-    "Khoảng cách đô thị nông thôn",
-    "Nhà ở và dân số",
-    "Giao thông công cộng",
-    "Quy hoạch đô thị",
-    "Không gian công cộng",
-    "Cô lập xã hội",
-    "Sức khỏe tinh thần",
-    "Stress xã hội",
-    "Gia đình hiện đại",
-    "Tỷ lệ sinh thấp",
-    "Vai trò giới",
-    "Bình đẳng cơ hội",
-    "Giáo dục trẻ em",
-    "Nuôi dạy con",
-    "Người cao tuổi trong xã hội",
-    "Chăm sóc dài hạn",
-    "Tình nguyện cộng đồng",
-    "Đạo đức công dân",
-    "Dân chủ địa phương",
-    "Tham gia xã hội",
-    "Chính sách thuế",
-    "Lương tối thiểu",
-    "Việc làm phi chính thức",
-    "Kinh tế chia sẻ",
-    "Mua sắm trực tuyến",
-    "Tiền điện tử",
-    "Không tiền mặt",
-    "Chuỗi cung ứng",
-    "Khủng hoảng lương thực",
-    "An toàn thực phẩm",
-    "Nông nghiệp thông minh",
-    "Thiên tai",
-    "Quản lý khủng hoảng",
-    "Truyền thông khi khẩn cấp",
-    "Giáo dục phòng chống thiên tai",
-    "Nghiên cứu vũ trụ",
-    "Công nghệ xanh",
-    "Xe điện",
-    "Thành phố thông minh",
-    "Robot trong dịch vụ",
-    "Học tập suốt đời",
-    "Năng lực phản biện",
-    "Đọc hiểu truyền thông",
-    "Viết học thuật",
-    "Thuyết phục người đọc",
-    "Tranh luận xã hội",
-    "Đề xuất chính sách",
-    "Phân tích nguyên nhân",
-    "So sánh quan điểm",
-    "Tương lai Nhật Bản",
-    "Tương lai Việt Nam"
-  ],
-  "N1": [
-    "Triết học và tư duy",
-    "Chính trị và xã hội",
-    "Văn học và nghệ thuật",
-    "Bản chất của hạnh phúc",
-    "Tự do và trách nhiệm",
-    "Đạo đức và pháp luật",
-    "Công lý xã hội",
-    "Quyền lực và minh bạch",
-    "Dân chủ hiện đại",
-    "Chủ nghĩa cá nhân",
-    "Chủ nghĩa cộng đồng",
-    "Bản sắc dân tộc",
-    "Ký ức lịch sử",
-    "Di sản văn hóa",
-    "Toàn cầu hóa văn hóa",
-    "Ngôn ngữ và quyền lực",
-    "Tư duy phản biện",
-    "Tri thức và định kiến",
-    "Sự thật trong truyền thông",
-    "Hậu sự thật",
-    "AI và nhân tính",
-    "Đạo đức AI",
-    "Tự động hóa và phẩm giá lao động",
-    "Công nghệ giám sát",
-    "Quyền riêng tư như nhân quyền",
-    "Sinh mệnh và đạo đức",
-    "Y học tái tạo",
-    "Tuổi thọ và ý nghĩa sống",
-    "Môi trường và trách nhiệm liên thế hệ",
-    "Phát triển bền vững",
-    "Công bằng khí hậu",
-    "Chủ nghĩa tiêu dùng",
-    "Tối giản và dư thừa",
-    "Nghệ thuật trong khủng hoảng",
-    "Văn học phản ánh xã hội",
-    "Vai trò của phê bình",
-    "Mỹ học truyền thống",
-    "Nghệ thuật đương đại",
-    "Tự do biểu đạt",
-    "Kiểm duyệt và trách nhiệm",
-    "Giáo dục khai phóng",
-    "Đại học trong xã hội",
-    "Tri thức chuyên môn",
-    "Học thuật và ứng dụng",
-    "Di cư và bản sắc",
-    "Đa văn hóa và hòa nhập",
-    "Quốc gia và biên giới",
-    "Trật tự quốc tế",
-    "Xung đột và hòa bình",
-    "Ngoại giao văn hóa",
-    "Kinh tế tri thức",
-    "Chủ nghĩa tư bản nền tảng",
-    "Bất bình đẳng cấu trúc",
-    "Phúc lợi và tự lực",
-    "Lao động cảm xúc",
-    "Cô đơn hiện đại",
-    "Quan hệ lỏng",
-    "Gia đình hậu hiện đại",
-    "Giới và quyền lực",
-    "Cơ thể và xã hội",
-    "Tôn giáo trong hiện đại",
-    "Nghi lễ và cộng đồng",
-    "Thành phố như không gian ký ức",
-    "Kiến trúc và con người",
-    "Thiên tai và ký ức tập thể",
-    "Rủi ro xã hội",
-    "Quản trị khủng hoảng",
-    "Chính sách dựa trên bằng chứng",
-    "Dữ liệu và đạo đức",
-    "Thuật toán và thiên kiến",
-    "Sáng tạo của con người",
-    "Dịch thuật văn hóa",
-    "Văn học so sánh",
-    "Tiếng Nhật và tư duy",
-    "Diễn ngôn xã hội",
-    "Ẩn dụ trong đời sống",
-    "Cái đẹp là gì",
-    "Cái thiện là gì",
-    "Ý chí tự do",
-    "Trách nhiệm cá nhân",
-    "Tha thứ và công lý",
-    "Ký ức và quên lãng",
-    "Hy vọng trong bất định",
-    "Tương lai của giáo dục",
-    "Tương lai của lao động",
-    "Tương lai của quốc gia",
-    "Tương lai của nghệ thuật",
-    "Tương lai của ngôn ngữ",
-    "Phê phán công nghệ",
-    "Đời sống số",
-    "Cộng đồng ảo",
-    "Niềm tin xã hội",
-    "Tính chính danh",
-    "Hệ giá trị",
-    "Thỏa hiệp và đối thoại",
-    "Sự im lặng trong giao tiếp",
-    "Tính phổ quát và tương đối",
-    "Ý nghĩa của việc viết",
-    "Chủ đề luyện viết 99",
-    "Chủ đề luyện viết 100"
-  ]
-};
-const FREE_TOPIC_TAGS_20 = ["Du lịch Nhật Bản", "Gia đình", "Công việc", "Phim anime", "Thời tiết", "Sức khỏe", "Mua sắm", "Học tiếng Nhật", "Mạng xã hội", "Môi trường", "Giáo dục", "Bạn bè", "Ẩm thực", "Âm nhạc", "Thể thao", "Công nghệ", "Văn hóa Nhật", "Ước mơ", "Cuộc sống đô thị", "Tương lai"];
-const PATCH_EMOJIS = ['🌸','📚','✏️','🎧','🎬','🍱','🏫','💼','🌍','🧠','📱','🚆','🏙️','🤝','🎯','☕','🏃','🛍️','🗾','✨'];
-const PATCH_BANK = {
-  N5: { v:[['私','わたし','tôi','私の名前','tự giới thiệu','私は学生です。','私は毎日日本語を勉強します。'],['好き','すき','thích','〜が好き','sở thích','私は音楽が好きです。','母は甘い食べ物が好きです。'],['毎日','まいにち','mỗi ngày','毎日〜ます','thói quen','毎日七時に起きます。','毎日少し日本語を書きます。'],['友達','ともだち','bạn bè','友達と会う','quan hệ','週末、友達と映画を見ます。','友達はとても親切です。'],['楽しい','たのしい','vui','楽しい時間','cảm nhận','学校は楽しいです。','家族と旅行するのは楽しいです。'],['行く','いく','đi','学校へ行く','di chuyển','明日、学校へ行きます。','日曜日に公園へ行きました。']], g:[['〜は〜です','A là B','N1 は N2 です','Giới thiệu/miêu tả cơ bản','私は学生です。','これは日本の本です。'],['〜が好きです','thích ~','N が好きです','Nói sở thích','私は寿司が好きです。','弟はサッカーが好きです。'],['〜に行きます','đi đến ~','場所 に/へ 行きます','Nói địa điểm đi đến','学校に行きます。','週末、友達とカフェへ行きます。'],['〜を〜ます','làm gì với tân ngữ','N を Vます','Nói hành động thường ngày','日本語を勉強します。','朝ごはんを食べます。']] },
-  N4: { v:[['経験','けいけん','kinh nghiệm','経験がある','kể trải nghiệm','日本へ行った経験があります。','この経験から多くのことを学びました。'],['準備する','じゅんびする','chuẩn bị','旅行の準備','lập kế hoạch','旅行の前に荷物を準備します。','試験のために毎日準備しています。'],['習慣','しゅうかん','thói quen','よい習慣','nếp sống','早く寝る習慣があります。','運動する習慣をつけたいです。'],['大切','たいせつ','quan trọng','大切にする','nhấn mạnh giá trị','家族は私にとって大切です。','時間を大切にしたいです。'],['比べる','くらべる','so sánh','AとBを比べる','so sánh ý kiến','都会と田舎を比べました。','去年と比べて日本語が上手になりました。'],['便利','べんり','tiện lợi','便利なアプリ','đánh giá tiện ích','スマホはとても便利です。','駅の近くに住むと便利です。']], g:[['〜たことがあります','đã từng ~','Vた + ことがあります','Nói kinh nghiệm','日本料理を食べたことがあります。','一人で旅行したことがあります。'],['〜ために','để ~','Vる/Nの + ために','Nêu mục đích','合格するために勉強します。','健康のために運動しています。'],['〜ようになる','trở nên/bắt đầu có thể ~','Vる/Vない + ようになる','Nói thay đổi','日本語で話せるようになりました。','早く起きるようになりました。'],['〜と思います','tôi nghĩ rằng ~','普通形 + と思います','Nêu ý kiến','この方法はいいと思います。','旅行は大切だと思います。']] },
-  N3: { v:[['影響','えいきょう','ảnh hưởng','影響を与える','phân tích hệ quả','SNSは生活に大きな影響を与えます。','環境問題の影響は将来も続きます。'],['課題','かだい','vấn đề/thách thức','課題を解決する','nêu vấn đề','教育にはまだ多くの課題があります。','この課題を解決する必要があります。'],['取り組む','とりくむ','nỗ lực xử lý','問題に取り組む','giải pháp','社会全体で環境問題に取り組むべきです。','私は語彙力の向上に取り組んでいます。'],['意識','いしき','ý thức','意識が高い','thái độ xã hội','若者の環境意識が高まっています。','時間を意識して行動します。'],['改善する','かいぜんする','cải thiện','状況を改善する','đề xuất','生活習慣を改善したいです。','交通問題を改善する必要があります。'],['共通点','きょうつうてん','điểm chung','共通点がある','so sánh','日本とベトナムの文化には共通点があります。','二つの意見の共通点を考えます。']], g:[['〜によって','do/tùy theo/bằng cách','N + によって','Nguyên nhân/phương tiện/khác biệt','生活は技術によって便利になりました。','考え方は人によって違います。'],['〜だけでなく〜も','không chỉ ~ mà còn ~','A だけでなく B も','Bổ sung luận điểm','SNSは便利なだけでなく危険もあります。','彼は日本語だけでなく英語も話せます。'],['〜べきだ','nên/phải ~','Vる + べきだ','Nêu quan điểm mạnh','私たちは環境を守るべきです。','学生は自分で考えるべきです。'],['〜一方で','mặt khác/trong khi đó','普通形 + 一方で','Đối lập hai mặt','都会は便利な一方で、生活費が高いです。','SNSは情報が早い一方で、誤情報も多いです。']] },
-  N2: { v:[['構造的','こうぞうてき','mang tính cấu trúc','構造的な問題','phân tích xã hội','これは個人ではなく構造的な問題です。','構造的な格差を是正する必要があります。'],['是正する','ぜせいする','khắc phục/chỉnh sửa','格差を是正する','đề xuất chính sách','政府は地域格差を是正すべきです。','制度の不公平を是正する必要があります。'],['持続可能','じぞくかのう','bền vững','持続可能な社会','môi trường/kinh tế','持続可能な社会を目指すべきです。','企業にも持続可能な経営が求められます。'],['規制','きせい','quy định/kiểm soát','規制を強化する','chính sách','AIの利用には適切な規制が必要です。','規制を強化しすぎると革新が止まります。'],['普及する','ふきゅうする','phổ biến','技術が普及する','xu hướng','スマートフォンは急速に普及しました。','再生可能エネルギーの普及が進んでいます。'],['深刻化する','しんこくかする','trở nên nghiêm trọng','問題が深刻化する','cảnh báo','少子高齢化が深刻化しています。','気候変動の影響が深刻化しています。']], g:[['〜にもかかわらず','mặc dù ~ nhưng','普通形/N + にもかかわらず','Nghịch lý/kết quả trái dự đoán','努力したにもかかわらず、結果は出ませんでした。','便利であるにもかかわらず、問題も多いです。'],['〜を踏まえて','dựa trên/căn cứ vào ~','N + を踏まえて','Đưa kết luận dựa trên dữ kiện','調査結果を踏まえて対策を考えます。','現状を踏まえて意見を述べます。'],['〜に伴って','cùng với/kéo theo','N/Vる + に伴って','Nói biến đổi song hành','技術の発展に伴って働き方が変わりました。','高齢化に伴って医療費が増えています。'],['〜ざるを得ない','buộc phải/không thể không','Vない bỏ ない + ざるを得ない','Kết luận bắt buộc','状況を考えると、計画を変えざるを得ません。','人手不足のため、外国人材に頼らざるを得ません。']] },
-  N1: { v:[['本質','ほんしつ','bản chất','本質を問う','bàn luận trừu tượng','幸福の本質を考える必要があります。','この問題の本質は制度にあります。'],['普遍性','ふへんせい','tính phổ quát','普遍性を持つ','triết học/văn hóa','文学には時代を超えた普遍性があります。','その価値観に普遍性があるとは限りません。'],['相対的','そうたいてき','tương đối','相対的な価値','so sánh tư tưởng','幸福の基準は相対的です。','文化によって善悪の判断は相対的になり得ます。'],['論証','ろんしょう','luận chứng','論証を組み立てる','viết học thuật','主張には明確な論証が必要です。','彼の論証には説得力があります。'],['帰結する','きけつする','dẫn tới kết quả/kết luận','〜に帰結する','kết luận logic','無関心は社会の停滞に帰結します。','自由の議論は責任の問題に帰結します。'],['葛藤','かっとう','giằng co/xung đột nội tâm','葛藤を抱える','phân tích con người','現代人は自由と不安の間で葛藤しています。','主人公の葛藤が物語を深くしています。']], g:[['〜がゆえに','chính vì/do ~','普通形/N + がゆえに','Văn viết, nêu nguyên nhân sâu','自由であるがゆえに責任も生じます。','彼は真面目がゆえに悩みやすいです。'],['〜にほかならない','chính là/không gì khác ngoài','N + にほかならない','Kết luận nhấn mạnh','教育とは未来への投資にほかなりません。','この沈黙は抗議にほかなりません。'],['〜ならではの','chỉ riêng ~ mới có','N + ならではの + N','Đánh giá đặc trưng','日本ならではの美意識があります。','文学ならではの表現力があります。'],['〜とも〜とも言えない','khó nói là ~ hay ~','A とも B とも言えない','Nhận định tinh tế/không tuyệt đối','それは正しいとも間違いとも言えません。','現代社会は自由とも不自由とも言えません。']] }
-};
-function patchV(level,name,idx){ const b=PATCH_BANK[level].v[idx%PATCH_BANK[level].v.length]; return {jp:b[0],r:b[1],vn:b[2],collocation:b[3],context:b[4],examples:[b[5],b[6]]}; }
-function patchG(level,name,idx){ const b=PATCH_BANK[level].g[idx%PATCH_BANK[level].g.length]; return {pattern:b[0],meaning:b[1],structure:b[2],context:b[3],examples:[b[4],b[5]]}; }
-function patchPrompts(level,name){
- const jp={N5:[`${name}について書いてください。`,`${name}で好きなことを一つ紹介してください。`,`${name}について、毎日/週末にすることを書いてください。`],N4:[`${name}について、経験を交えて書いてください。`,`${name}で大切だと思うことと理由を書いてください。`,`${name}について、これからしたいことを書いてください。`],N3:[`${name}の良い点と問題点について書いてください。`,`${name}について、自分の意見と理由を述べてください。`,`${name}に関する具体例を挙げて考えを書いてください。`],N2:[`${name}をめぐる現状と課題について論じてください。`,`${name}が社会に与える影響を分析してください。`,`${name}について、解決策を一つ提案してください。`],N1:[`${name}の本質について、抽象的かつ具体的に論じてください。`,`${name}を現代社会の文脈から批判的に考察してください。`,`${name}に関して、対立する二つの観点を踏まえて論じてください。`]};
- const vn={N5:[`Hãy viết về chủ đề ${name}.`,`Hãy giới thiệu một điều bạn thích trong chủ đề ${name}.`,`Hãy viết việc hằng ngày/cuối tuần liên quan đến ${name}.`],N4:[`Hãy viết về ${name} kèm trải nghiệm của bạn.`,`Hãy viết điều quan trọng trong ${name} và nêu lý do.`,`Hãy viết điều bạn muốn làm sắp tới liên quan đến ${name}.`],N3:[`Hãy viết điểm tốt và vấn đề của ${name}.`,`Hãy nêu ý kiến cá nhân và lý do về ${name}.`,`Hãy đưa ví dụ cụ thể và viết suy nghĩ về ${name}.`],N2:[`Hãy bàn về hiện trạng và thách thức xoay quanh ${name}.`,`Hãy phân tích ảnh hưởng của ${name} đối với xã hội.`,`Hãy đề xuất một giải pháp liên quan đến ${name}.`],N1:[`Hãy luận về bản chất của ${name}, kết hợp ý trừu tượng và ví dụ cụ thể.`,`Hãy suy ngẫm phê phán về ${name} trong bối cảnh xã hội hiện đại.`,`Hãy bàn về ${name} dựa trên hai quan điểm đối lập.`]};
- return jp[level].map((p,i)=>({jp:p,vn:vn[level][i]}));
+var FREE_TOPIC_TAGS_20 = ['Du lịch Nhật Bản','Gia đình','Công việc','Phim anime','Thời tiết','Sức khỏe','Mua sắm','Học tiếng Nhật','Mạng xã hội','Môi trường','Giáo dục','Bạn bè','Ẩm thực','Âm nhạc','Thể thao','Công nghệ','Văn hóa Nhật','Ước mơ','Cuộc sống đô thị','Tương lai'];
+function renderFreeTags(){
+  const wrap=document.querySelector('.free-examples'); if(!wrap) return;
+  wrap.innerHTML='<span class="free-ex-label">20 tag gợi ý:</span>'+FREE_TOPIC_TAGS_20.map(tag=>`<button class="quick-chip" onclick="setFreeTopic('${tag.replace(/'/g,"\\'")}')">${escapeHTML(tag)}</button>`).join('');
 }
-function patchBuildTopic(level,name,idx){ return {name,emoji:PATCH_EMOJIS[idx%PATCH_EMOJIS.length],prompts:patchPrompts(level,name),vocab:Array.from({length:8},(_,i)=>patchV(level,name,idx+i)),grammar:Array.from({length:4},(_,i)=>patchG(level,name,idx+i))}; }
-function patchHydrateTopics(){ Object.keys(BUILTIN_TOPIC_NAMES_100).forEach(level=>{ const old=new Map((TOPICS[level]||[]).map((t,i)=>{ t.prompts=(t.prompts||[]).slice(0,3); while(t.prompts.length<3)t.prompts.push(patchPrompts(level,t.name)[t.prompts.length]); t.vocab=(t.vocab||[]).map((v,j)=>({...patchV(level,t.name,i+j),...v})); t.grammar=(t.grammar||[]).map((g,j)=>({...patchG(level,t.name,i+j),...g})); return [t.name,t]; })); TOPICS[level]=BUILTIN_TOPIC_NAMES_100[level].map((name,i)=>old.get(name)||patchBuildTopic(level,name,i)); }); }
-patchHydrateTopics();
-function escapeHTML(str=''){ return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-function renderTopics(){ const topics=TOPICS[state.level]||[]; document.getElementById('topic-level-badge').textContent=`${state.level} · ${topics.length} chủ đề`; document.getElementById('topic-grid').innerHTML=topics.map((t,i)=>`<div class="topic-card" onclick="selectTopic(${i})"><div class="topic-emoji">${t.emoji}</div><div class="topic-name">${escapeHTML(t.name)}</div><div class="topic-count">3 đề bài · ${t.vocab.length} từ · ${t.grammar.length} mẫu</div></div>`).join(''); }
-function patchVocabDetail(v){ return `<div class="expand-detail"><div><b>Cách đọc:</b> ${escapeHTML(v.r||'')}</div><div><b>Ý nghĩa:</b> ${escapeHTML(v.vn||'')}</div><div><b>Collocation:</b> ${escapeHTML(v.collocation||'よく使う表現')}</div><div><b>Bối cảnh:</b> ${escapeHTML(v.context||'Dùng trong đời sống hằng ngày.')}</div><div class="mini-examples"><b>2 ví dụ thực tế:</b><br>① ${escapeHTML((v.examples||[])[0]||'')}<br>② ${escapeHTML((v.examples||[])[1]||'')}</div></div>`; }
-function patchGrammarDetail(g){ return `<div class="expand-detail grammar-expand"><div><b>Cấu trúc:</b> ${escapeHTML(g.structure||g.pattern||'')}</div><div><b>Nghĩa:</b> ${escapeHTML(g.meaning||'')}</div><div><b>Bối cảnh dùng:</b> ${escapeHTML(g.context||'Dùng khi muốn diễn đạt ý rõ ràng.')}</div><div class="mini-examples"><b>Ví dụ:</b><br>① ${escapeHTML((g.examples||[])[0]||'')}<br>② ${escapeHTML((g.examples||[])[1]||'')}</div></div>`; }
-function renderSidebar(){ const t=state.topic; document.getElementById('sidebar-topic').textContent=`${t.emoji} ${t.name}`; document.getElementById('sidebar-level').textContent=state.level; document.getElementById('vocab-list').innerHTML=t.vocab.map(v=>`<div class="vocab-item expandable-item" onclick="toggleLearningItem(this)"><div class="learning-row"><div><div class="vocab-jp">${escapeHTML(v.jp)}</div><div class="vocab-reading">${escapeHTML(v.r)}</div></div><div class="vocab-vn">${escapeHTML(v.vn)}</div></div>${patchVocabDetail(v)}</div>`).join(''); document.getElementById('vocab-count').textContent=t.vocab.length; document.getElementById('grammar-list').innerHTML=t.grammar.map(g=>`<div class="grammar-item expandable-item" onclick="toggleLearningItem(this)"><div class="grammar-pattern">${escapeHTML(g.pattern)}</div><div class="grammar-meaning">${escapeHTML(g.meaning)}</div>${patchGrammarDetail(g)}</div>`).join(''); document.getElementById('grammar-count').textContent=t.grammar.length; }
+function lvJPTopic(name){
+  if (LV_TOPIC_JP_MAP[name]) return LV_TOPIC_JP_MAP[name];
+  if (/^[\u3040-\u30ff\u3400-\u9fffー々「」・\s0-9０-９一二三四五六七八九十百]+$/.test(name)) return name;
+  return 'このテーマ';
+}
+const LV_SEED_NAMES = {
+  N5:['自己紹介','家族','友達','学校','教室','先生','好きな科目','私の一日','朝','夜','週末','趣味','音楽','映画','アニメ','漫画','スポーツ','サッカー','買い物','服','食べ物','飲み物','朝ごはん','昼ごはん','晩ごはん','レストラン','カフェ','簡単な料理','果物','野菜','天気','春','夏','秋','冬','誕生日','休みの日','夏休み','近くへの旅行','駅','バス','散歩','自転車','私の家','私の部屋','私の町','公園','スーパー','本屋','病院','銀行','郵便局','ホテル','動物','ペット','猫','犬','花','色','数','時間','予定','通学','通勤','遊びに行くこと','友達に会うこと','電話','メッセージ','写真','プレゼント','お金','健康','病気','軽い運動','睡眠','早起き','掃除','洗濯','シャワー','歯磨き','読書','日記','日本語の勉強','好きな漢字','ひらがなとカタカナ','コンビニ','好きな日本料理','ベトナム','日本','言語','小さな夢','好きな人','嫌いなこと','楽しい思い出','雨の日','晴れの日','海','山','祭り','旧正月'],
+  N4:['旅行','仕事','健康','映画と音楽','買い物','毎日の習慣','週末の予定','思い出に残る休暇','日本語学習の経験','今年の目標','アルバイト','理想の会社','同僚','良い上司','就職面接','簡単なメール','約束','謝罪と感謝','人を助けること','一人暮らし','部屋を借りること','引っ越し','家事','節約','オンラインショッピング','商品の比較','お土産','好きなレストラン','料理のレシピ','健康的な食生活','運動','風邪','病院へ行くこと','睡眠','軽いストレス','電車','道に迷うこと','道を尋ねること','ホテル予約','空港','日本旅行の計画','日本の祭り','贈り物の文化','あいさつの習慣','現代の家族','親友','近所の人','ペットを飼うこと','SNS','スマートフォン','便利なアプリ','オンライン学習','動画','ニュース','新しい趣味','楽器','スポーツ','登山','キャンプ','海','写真撮影','日記','好きな本','最近見た映画','好きな歌','おすすめのアニメ','おすすめの漫画','住みやすい町','田舎','公共交通機関','リサイクル','節電','悪い天気','好きな季節','学校行事','試験','奨学金','クラブ活動','良い先生','難しい科目','将来','将来の夢','影響を受けた人','子どものころの思い出','過去の失敗','挑戦したいこと','やめたい習慣','良い習慣','忙しい日','リラックスする日','友達へのメッセージ','友達を誘うこと','約束を断ること','お願いすること','日本への印象','ベトナムと日本の比較','JLPTの目標','学習計画','作文テーマ九十九','作文テーマ百'],
+  N3:['環境','教育','日本文化','技術とSNS','都市生活','チームワーク','コミュニケーション能力','時間管理','学習のプレッシャー','仕事のストレス','生活のバランス','職業選択','転職','リモートワーク','外国語学習','自主学習','日本留学','奨学金','試験制度','理想の教師','未来の学校','読書','ニュース習慣','フェイクニュース','情報セキュリティ','スマホ依存','オンラインショッピング','電子決済','接客','企業文化','上下関係','大人になってからの友達','家族とキャリア','晩婚化','子育て','メンタルヘルス','運動と規律','健康的な食生活','十分な睡眠','持続可能な旅行','一人旅','旅行の思い出','祭り文化','公共マナー','日本の電車','時間厳守','学生のアルバイト','ボランティア','地域活動','動物保護','リサイクル','気候変動','省エネルギー','緑地','都市交通','渋滞','都市の住まい','田舎暮らし','都市への移住','伝統料理','ファストフード','カフェと仕事','週末の娯楽','アニメと大衆文化','癒やしの音楽','ドキュメンタリー','スポーツと社会','オリンピック','長期目標','成功とは何か','失敗と学び','自信','個人の動機','自己管理','賢い消費','小さな投資','世代間ギャップ','女性の役割','ジェンダー平等','高齢者','高齢化社会','介護ロボット','生活の中のAI','仕事の未来','コンテンツ制作','動画で学ぶこと','国際的な仕事','文化の違い','カルチャーショック','言語と思考','翻訳','ブログを書くこと','プレゼンテーション','議論','個人の意見','社会ニュース','地域問題','理想の都市','ミニマルな生活','日常の幸せ'],
+  N2:['社会経済','科学と未来','人間関係','グローバル化','少子高齢化','労働力不足','経済格差','社会福祉','教育政策','試験改革','大学と就職','二十一世紀のスキル','リモートワーク','労働生産性','残業文化','ワークライフバランス','リーダーシップ','職業倫理','リスク管理','起業','イノベーション','AIと雇用','自動化','個人データ','プライバシー','サイバーセキュリティ','フェイクニュースとメディア','オンライン上の言論の自由','SNSプラットフォーム','デジタル依存','遠隔医療','医療技術','医療倫理','気候変動','再生可能エネルギー','環境政策','循環型経済','持続可能な消費','企業責任','オーバーツーリズム','文化保護','伝統文化','大衆文化','ソフトパワー','国際交流','労働移民','多文化共生','言語の壁','外国語教育','都市と地方の格差','住宅と人口','公共交通機関','都市計画','公共空間','社会的孤立','メンタルヘルス','社会的ストレス','現代の家族','低出生率','ジェンダー役割','機会の平等','子どもの教育','子育て','高齢者と社会','介護','地域ボランティア','市民倫理','地方民主主義','社会参加','税制','最低賃金','非正規雇用','シェアリングエコノミー','オンライン消費','暗号資産','キャッシュレス','サプライチェーン','食料危機','食品安全','スマート農業','自然災害','危機管理','緊急時の情報発信','防災教育','宇宙研究','グリーンテクノロジー','電気自動車','スマートシティ','サービスロボット','生涯学習','批判的思考力','メディアリテラシー','アカデミックライティング','読者を説得すること','社会的議論','政策提案','原因分析','観点の比較','日本の未来','ベトナムの未来'],
+  N1:['哲学と思考','政治と社会','文学と芸術','幸福の本質','自由と責任','道徳と法律','社会正義','権力と透明性','現代民主主義','個人主義','共同体主義','民族的アイデンティティ','歴史的記憶','文化遺産','文化のグローバル化','言語と権力','批判的思考','知識と偏見','メディアにおける真実','ポスト真実','AIと人間性','AI倫理','自動化と労働の尊厳','監視技術','人権としてのプライバシー','生命と倫理','再生医療','長寿と生の意味','環境と世代間責任','持続可能な発展','気候正義','消費主義','ミニマリズムと過剰','危機における芸術','社会を映す文学','批評の役割','伝統美学','現代アート','表現の自由','検閲と責任','リベラルアーツ教育','社会における大学','専門知','学問と応用','移民とアイデンティティ','多文化と包摂','国家と国境','国際秩序','紛争と平和','文化外交','知識経済','プラットフォーム資本主義','構造的不平等','福祉と自助','感情労働','現代の孤独','流動的な人間関係','ポストモダンの家族','ジェンダーと権力','身体と社会','現代における宗教','儀礼と共同体','記憶としての都市','建築と人間','災害と集合的記憶','リスク社会','危機管理','証拠に基づく政策','データと倫理','アルゴリズムと偏見','人間の創造性','文化翻訳','比較文学','日本語と思考','社会的ディスコース','日常のメタファー','美とは何か','善とは何か','自由意志','個人の責任','許しと正義','記憶と忘却','不確実性の中の希望','教育の未来','労働の未来','国家の未来','芸術の未来','言語の未来','技術批判','デジタル生活','仮想共同体','社会的信頼','正当性','価値体系','妥協と対話','コミュニケーションにおける沈黙','普遍性と相対性','書くことの意味']
+};
+function lvMakeTopic(level,name,idx){
+  return {name, jpName:lvJPTopic(name), emoji:(typeof PATCH_EMOJIS !== 'undefined' ? PATCH_EMOJIS[idx%PATCH_EMOJIS.length] : ['🌸','📚','✏️','🎧','🎬','🍱','🏫','💼','🌍','🧠','📱','🚆','🏙️','🤝','🎯','☕','🏃','🛍️','🗾','✨'][idx%20]), category:lvCategoryForTopic(name), prompts:lvPromptSet(level,name), vocab:lvBuildVocab(level,name,idx), grammar:lvBuildGrammar(level,name,idx)};
+}
+function patchBuildTopic(level,input,idx){ return lvMakeTopic(level,input,idx||0); }
+function lvEnsure100Topics(){
+  ['N5','N4','N3','N2','N1'].forEach(level=>{
+    const current=(TOPICS[level]||[]).map(t=>t.name);
+    const pool=[...current,...(LV_SEED_NAMES[level]||[])];
+    const seen=new Set(), names=[];
+    pool.forEach(n=>{ if(n&&!seen.has(n)){seen.add(n); names.push(n);} });
+    let i=names.length+1; while(names.length<100){ names.push(`作文テーマ${String(i).padStart(2,'0')}`); i++; }
+    TOPICS[level]=names.slice(0,100).map((n,idx)=>lvMakeTopic(level,n,idx));
+  });
+}
+lvEnsure100Topics();
+
+// Rebind enhanced free suggestion after all helpers exist.
+function getSuggestions(){
+  const input=document.getElementById('free-topic-input').value.trim();
+  if(!input) return document.getElementById('free-topic-input').focus();
+  state.freeTopic=input;
+  state.topic=lvMakeTopic(state.level,input,FREE_TOPIC_TAGS_20.indexOf(input)+11);
+  state.topic.emoji='✏️';
+  state.promptIdx=0; renderSidebar(); renderPrompt(); showStep('step-writing'); scrollToStep('step-writing'); clearFeedback();
+}
+
+// Utility fallback for original upload.
+function escapeHTML(str=''){
+  return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
 function toggleLearningItem(el){ el.classList.toggle('expanded'); }
-function renderPrompt(){ const p=state.topic.prompts[state.promptIdx%state.topic.prompts.length]; document.getElementById('writing-prompt').innerHTML=`<div class="prompt-label">✏ Đề bài ${state.promptIdx+1}/${state.topic.prompts.length}</div><div class="prompt-text">${escapeHTML(p.jp)}</div><div class="prompt-vn">${escapeHTML(p.vn)}</div><div class="prompt-switcher">${state.topic.prompts.map((_,i)=>`<button class="prompt-pill ${i===state.promptIdx?'active':''}" onclick="choosePrompt(${i})">Đề ${i+1}</button>`).join('')}</div>`; }
-function choosePrompt(idx){ state.promptIdx=idx; renderPrompt(); clearFeedback(); }
-function renderFreeTags(){ const wrap=document.querySelector('.free-examples'); if(!wrap)return; wrap.innerHTML='<span class="free-ex-label">20 tag gợi ý:</span>'+FREE_TOPIC_TAGS_20.map(tag=>`<button class="quick-chip" onclick="setFreeTopic('${tag.replace(/'/g,"\'")}')">${tag}</button>`).join(''); }
-function getSuggestions(){ const input=document.getElementById('free-topic-input').value.trim(); if(!input)return document.getElementById('free-topic-input').focus(); state.freeTopic=input; state.topic=patchBuildTopic(state.level,input,FREE_TOPIC_TAGS_20.indexOf(input)+11); state.topic.emoji='✏️'; state.promptIdx=0; renderSidebar(); renderPrompt(); showStep('step-writing'); scrollToStep('step-writing'); clearFeedback(); }
-function selectMode(mode){ state.mode=mode; document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('active')); document.getElementById('mode-'+mode)?.classList.add('active'); if(mode==='topic'){ renderTopics(); showStep('step-topics'); scrollToStep('step-topics'); } else if(mode==='free'){ renderFreeTags(); showStep('step-free-input'); scrollToStep('step-free-input'); } else if(mode==='drill'){ initDrill(); showStep('step-drill'); scrollToStep('step-drill'); } }
-function showStep(id){ ['step-mode','step-topics','step-free-input','step-drill','step-writing'].forEach(s=>document.getElementById(s)?.classList.add('step-hidden')); document.getElementById(id)?.classList.remove('step-hidden'); }
-function backToTopics(){ if(state.mode==='free'){showStep('step-free-input');scrollToStep('step-free-input');} else if(state.mode==='drill'){showStep('step-drill');scrollToStep('step-drill');} else {showStep('step-topics');scrollToStep('step-topics');} document.getElementById('step-writing')?.classList.add('step-hidden'); document.getElementById('next-actions').style.display='none'; }
-function backToMode(){ showStep('step-mode'); scrollToStep('step-mode'); }
-function goHome(){ ['step-mode','step-topics','step-free-input','step-drill','step-writing'].forEach(id=>document.getElementById(id)?.classList.add('step-hidden')); document.getElementById('hero-section')?.scrollIntoView({behavior:'smooth',block:'start'}); }
-const DRILL_SENTENCES={N5:[['vn-jp','Tôi là học sinh.','私は学生です。','私は / 学生 / です'],['jp-vn','毎日、日本語を勉強します。','Mỗi ngày tôi học tiếng Nhật.','毎日・勉強します'],['vn-jp','Tôi thích sushi.','私は寿司が好きです。','〜が好きです'],['jp-vn','週末、友達と公園へ行きます。','Cuối tuần tôi đi công viên với bạn.','週末・友達と・公園へ'],['vn-jp','Hôm nay trời nóng.','今日は暑いです。','今日・暑い']],N4:[['vn-jp','Tôi đã từng đi Nhật.','私は日本へ行ったことがあります。','〜たことがあります'],['jp-vn','健康のために、毎朝走っています。','Vì sức khỏe, mỗi sáng tôi chạy bộ.','〜ために'],['vn-jp','Tôi nghĩ công việc này rất quan trọng.','この仕事はとても大切だと思います。','〜と思います'],['jp-vn','最近、早く起きるようになりました。','Gần đây tôi đã bắt đầu dậy sớm được.','〜ようになりました'],['vn-jp','Trước khi đi du lịch, tôi chuẩn bị hành lý.','旅行に行く前に、荷物を準備します。','〜前に']],N3:[['vn-jp','Mạng xã hội không chỉ tiện lợi mà còn có nguy hiểm.','SNSは便利なだけでなく、危険もあります。','〜だけでなく〜も'],['jp-vn','技術によって、生活は大きく変わりました。','Nhờ công nghệ, cuộc sống đã thay đổi lớn.','〜によって'],['vn-jp','Chúng ta nên bảo vệ môi trường.','私たちは環境を守るべきです。','〜べきだ'],['jp-vn','都会は便利な一方で、生活費が高いです。','Thành phố tiện lợi, mặt khác chi phí sinh hoạt cao.','〜一方で'],['vn-jp','Tôi muốn giải quyết vấn đề này bằng cách học thêm.','もっと勉強することで、この問題を解決したいです。','〜ことで']],N2:[['vn-jp','Dựa trên kết quả khảo sát, chúng ta cần nghĩ giải pháp.','調査結果を踏まえて、対策を考える必要があります。','〜を踏まえて'],['jp-vn','高齢化に伴って、医療費が増えています。','Cùng với già hóa dân số, chi phí y tế đang tăng.','〜に伴って'],['vn-jp','Mặc dù tiện lợi, công nghệ cũng có nhiều vấn đề.','便利であるにもかかわらず、技術には多くの問題もあります。','〜にもかかわらず'],['jp-vn','人手不足のため、外国人材に頼らざるを得ません。','Vì thiếu nhân lực, buộc phải dựa vào lao động nước ngoài.','〜ざるを得ない'],['vn-jp','Đây không phải vấn đề cá nhân mà là vấn đề cấu trúc.','これは個人の問題ではなく、構造的な問題です。','構造的']],N1:[['vn-jp','Chính vì tự do nên trách nhiệm cũng phát sinh.','自由であるがゆえに、責任も生じます。','〜がゆえに'],['jp-vn','教育とは未来への投資にほかなりません。','Giáo dục chính là sự đầu tư cho tương lai.','〜にほかならない'],['vn-jp','Không thể nói điều đó là đúng hay sai.','それは正しいとも間違いとも言えません。','〜とも〜とも言えない'],['jp-vn','日本ならではの美意識があります。','Có thẩm mỹ đặc trưng chỉ Nhật Bản mới có.','〜ならではの'],['vn-jp','Sự im lặng đó không gì khác ngoài một sự phản đối.','その沈黙は抗議にほかなりません。','〜にほかならない']]};
-function expandDrills(level){ const base=DRILL_SENTENCES[level],out=[]; for(let i=0;i<120;i++){const b=base[i%base.length]; out.push({direction:b[0],source:b[1],answer:b[2],hint:b[3]});} return out; }
-function initDrill(){ state.drill={idx:0,correct:0,unlockedNext:false,items:expandDrills(state.level)}; renderDrill(); }
-function renderDrill(){ const d=state.drill,item=d.items[d.idx]; document.getElementById('drill-level-badge').textContent=state.level; document.getElementById('drill-progress-text').textContent=`Câu ${d.idx+1}/${d.items.length}`; document.getElementById('drill-streak').textContent=d.correct?`Đúng ${d.correct}`:''; document.getElementById('drill-progress-fill').style.width=`${((d.idx+1)/d.items.length)*100}%`; document.getElementById('drill-direction').textContent=item.direction==='vn-jp'?'🇻🇳 → 🇯🇵 Dịch sang tiếng Nhật':'🇯🇵 → 🇻🇳 Dịch sang tiếng Việt'; document.getElementById('drill-sentence').textContent=item.source; document.getElementById('drill-vocab-hint').textContent=`Gợi ý: ${item.hint}`; document.getElementById('drill-answer').value=''; document.getElementById('drill-char-count').textContent='0 ký tự'; document.getElementById('drill-feedback').innerHTML=''; document.getElementById('drill-next-btn').style.display='none'; d.unlockedNext=false; }
-function normalizeAnswer(s){ return String(s||'').toLowerCase().replace(/[。、．.！!？?\s]/g,'').trim(); }
-function submitDrill(){ const d=state.drill,item=d.items[d.idx],ans=document.getElementById('drill-answer').value.trim(); if(!ans)return document.getElementById('drill-answer').focus(); const ok=normalizeAnswer(ans)===normalizeAnswer(item.answer); if(ok)d.correct++; d.unlockedNext=ok; document.getElementById('drill-feedback').innerHTML=`<div class="drill-feedback-box ${ok?'correct':'wrong'}"><div class="drill-feedback-title">${ok?'✅ Chính xác!':'📝 Chưa đúng, xem đáp án mẫu rồi thử lại nhé'}</div><div><b>Đáp án:</b> <span class="jp-inline">${escapeHTML(item.answer)}</span></div><div class="drill-small">${ok?'Bạn có thể qua câu tiếp theo.':'Bạn cần nhập đúng đáp án để mở nút câu tiếp theo, hoặc dùng Bỏ qua.'}</div></div>`; document.getElementById('drill-next-btn').style.display=ok?'inline-block':'none'; }
-function nextDrill(){ if(!state.drill.unlockedNext)return; state.drill.idx=Math.min(state.drill.idx+1,state.drill.items.length-1); renderDrill(); }
-function skipDrill(){ state.drill.idx=Math.min(state.drill.idx+1,state.drill.items.length-1); renderDrill(); }
-function prevDrill(){ state.drill.idx=Math.max(state.drill.idx-1,0); renderDrill(); }
-function clearDrill(){ document.getElementById('drill-answer').value=''; document.getElementById('drill-char-count').textContent='0 ký tự'; document.getElementById('drill-answer').focus(); }
-document.addEventListener('DOMContentLoaded',()=>{ renderFreeTags(); const da=document.getElementById('drill-answer'),dc=document.getElementById('drill-char-count'); if(da&&dc)da.addEventListener('input',()=>dc.textContent=da.value.length+' ký tự'); });
